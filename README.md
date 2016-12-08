@@ -3,74 +3,99 @@ My Notes from the YDKJS collection by Kyle Simpson
 
 ## You Don't Know JS - Up & Going
 
-- Your Highlight on page 4-4 | Added on Sunday, November 20, 2016 9:09:52 PM
+The JavaScript engine actually compiles the program on the fly and then immediately runs the compiled code
 
-The JavaScript engine actually compiles the pro‐ gram on the fly and then immediately runs the compiled code
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 15-15 | Added on Sunday, November 20, 2016 9:19:24 PM
-
-JavaScript uses the latter approach, dynamic typing, meaning vari‐ ables can hold values of any type without any type enforcement
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 15-15 | Added on Sunday, November 20, 2016 9:20:12 PM
+JavaScript uses the latter approach, dynamic typing, meaning variables can hold values of any type without any type enforcement
 
 Either way, you’ll note that amount holds a running value that changes over the course of the program, illustrating the primary purpose of variables: managing program state
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 15-15 | Added on Sunday, November 20, 2016 9:20:22 PM
 
-In other words, state is tracking the changes to values as your pro‐ gram runs. Variables | 15
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 36-36 | Added on Monday, November 21, 2016 7:31:45 AM
+In other words, state is tracking the changes to values as your program runs.
 
-The specific list of “falsy” values in JavaScript is as follows: • "" (empty string) • 0, -0, NaN (invalid number) • null, undefined • false
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 41-41 | Added on Monday, November 21, 2016 7:34:39 AM
+The specific list of “falsy” values in JavaScript is as follows:
+* "" (empty string)
+* 0,
+* -0,
+* NaN (invalid number)
+* null
+* undefined
+* false
 
-You use the var keyword to declare a variable that will belong to the current function scope, or the global scope if at the top level outside of any function
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 41-41 | Added on Monday, November 21, 2016 7:35:36 AM
+You use the `var` keyword to declare a variable that will belong to the current function scope, or the global scope if at the top level outside of any function
 
-Metaphorically, this behavior is called hoisting, when a var declara‐ tion is conceptually “moved” to the top of its enclosing scope
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 47-47 | Added on Monday, November 21, 2016 7:42:25 AM
+Metaphorically, this behavior is called `hoisting`, when a var declaration is conceptually “moved” to the top of its enclosing scope
 
-This may sound like a strange concept at first, so take a moment to ponder it. Not only can you pass a value (argument) to a function, but a function itself can be a value that’s assigned to variables or passed to or returned from other functions. As such, a function value should be thought of as an expression, much like any other value or expression. Consider: var foo = function() { // .. }; var x = function bar(){ // .. }; The first function expression assigned to the foo variable is called anonymous because it has no name. The second function expression is named (bar), even as a reference to it is also assigned to the x variable. Named function expressions are generally more preferable, though anonymous function expressions are still extremely common. For more information, see the Scope & Closures title of this series. Immediately Invoked Function Expressions (IIFEs) In the previous snippet, neither of the function expressions are exe‐ cuted—we could if we had included foo() or x(), for instance. Functions as Values | 47
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 48-48 | Added on Monday, November 21, 2016 7:44:11 AM
+This may sound like a strange concept at first, so take a moment to ponder it. Not only can you pass a value (argument) to a function, but a `function` itself can be a value that’s assigned to variables or passed to or returned from other functions. As such, a function value should be thought of as an expression, much like any other value or expression.
+Consider:
+```JavaScript
+var foo = function() {
+  // ..
+};
 
-There’s another way to execute a function expression, which is typi‐ cally referred to as an immediately invoked function expression (IIFE): (function IIFE(){ console.log( "Hello!" ); })(); // "Hello!" The outer ( .. ) that surrounds the (function IIFE(){ .. }) function expression is just a nuance of JS grammar needed to pre‐ vent it from being treated as a normal function declaration. The final () on the end of the expression—the })(); line—is what actually executes the function expression referenced immediately
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 48-48 | Added on Monday, November 21, 2016 7:47:43 AM
+var x = function bar(){
+  // ..
+};
+```
+
+The first function expression assigned to the `foo` variable is called `anonymous` because it has no name. The second function expression is named `bar`, even as a reference to it is also assigned to the `x` variable.
+`Named function expressions` are generally more preferable, though `anonymous function expressions` are still extremely common.
+
+### `Immediately Invoked Function Expressions` (`IIFE`s)
+In the previous snippet, neither of the function expressions are executed.
+We could if we had included `foo()` or `x()`, for instance.
+
+There’s another way to execute a function expression, which is typically referred to as an `immediately invoked function expression` (IIFE):
+```JavaScript
+(function IIFE(){
+  console.log( "Hello!" );
+})(); // "Hello!"
+```
+
+The outer `( .. )` that surrounds the `(function IIFE(){ .. })` function expression is just a nuance of JS grammar needed to prevent it from being treated as a normal function declaration.
+The final () on the end of the expression is what actually executes the function expression referenced immediately.
 
 Because an IIFE is just a function, and functions create variable scope, using an IIFE in this fashion is often used to declare variables that won’t affect the surrounding code outside the IIFE
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 48-48 | Added on Monday, November 21, 2016 7:48:00 AM
 
-var a = 42; (function IIFE(){ var a = 10; console.log( a ); // 10 })(); console.log( a );
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 49-49 | Added on Monday, November 21, 2016 7:59:10 AM
+```JavaScript
+var a = 42;
 
-You can think of closure as a way to “remember” and continue to access a function’s scope (its variables) even once the function has finished running
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 49-49 | Added on Monday, November 21, 2016 7:59:50 AM
+(function IIFE(){
+  var a = 10;
+  console.log( a ); // 10
+})();
 
-Consider: function makeAdder(x) { // parameter `x` is an inner variable // inner function `add()` uses `x`, so // it has a "closure" over it function add(y) { return y + x; }; return add; } The reference to the inner add(..) function that gets returned with each call to the outer makeAdder(..) is able to remember whatever
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 49-49 | Added on Monday, November 21, 2016 8:00:07 AM
+console.log( a ); //42
+```
 
-Consider: function makeAdder(x) { // parameter `x` is an inner variable // inner function `add()` uses `x`, so // it has a "closure" over it function add(y) { return y + x; }; return add; } The reference to the inner add(..) function that gets returned with each call to the outer makeAdder(..) is able to remember whatever x value was passed in to makeAdder(..). Now, let’s use makeAd der(..): // `plusOne` gets a reference to the inner `add(..)` // function with closure over the `x` parameter of // the outer `makeAdder(..)` var plusOne = makeAdder( 1 ); // `plusTen` gets a reference to the inner `add(..)` // function with closure over the `x` parameter of // the outer `makeAdder(..)
+### Closure
+
+You can think of `closure` as a way to “remember” and continue to access a function’s scope (its variables) even once the function has finished running
+
+Consider:
+```JavaScript
+function makeAdder(x) {
+  // parameter `x` is an inner variable
+  // inner function `add()` uses `x`, so
+  // it has a "closure" over it
+  function add(y) {
+    return y + x;
+  };
+
+  return add;
+}
+```
+
+The reference to the inner `add(..)` function that gets returned with each call to the outer `makeAdder(..)` is able to remember whatever `x` value was passed in to `makeAdder(..)`. Now, let’s use
+
+```JavaScript
+makeAdder(..);
+// `plusOne` gets a reference to the inner `add(..)`
+// function with closure over the `x` parameter of
+// the outer `makeAdder(..)` var plusOne = makeAdder( 1 );
+// `plusTen` gets a reference to the inner `add(..)`
+// function with closure over the `x` parameter of
+// the outer `makeAdder(..)`
+
+```
 ==========
 You Don't Know JS - Up _ Going  
 - Your Highlight on page 50-50 | Added on Monday, November 21, 2016 8:02:04 AM
