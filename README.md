@@ -96,54 +96,46 @@ makeAdder(..);
 // the outer `makeAdder(..)`
 
 ```
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 50-50 | Added on Monday, November 21, 2016 8:02:04 AM
 
-The most common usage of closure in JavaScript is the module pat‐ tern. Modules let you define private implementation details (vari‐ ables, functions) that are hidden from the outside world, as well as a public API that is accessible from the outside
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 50-50 | Added on Monday, November 21, 2016 8:02:26 AM
+The most common usage of closure in JavaScript is the `module pattern`. Modules let you define private implementation details (variables, functions) that are hidden from the outside world, as well as a public API that is accessible from the outside
 
-function User(){ var username, password; function doLogin(user,pw) { username = user; password = pw; // do the rest of the login work }
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 51-51 | Added on Monday, November 21, 2016 8:03:27 AM
+```JavaScript
+function User(){
+  var username, password;
 
-var publicAPI = { login: doLogin }; return publicAPI; } // create a `User` module instance var fred = User(); fred.login( "fred", "12Battery34!" ); The User() function serves as an outer scope that holds the vari‐ ables username and password, as well as the inner doLogin() func‐ tion; these are all private inner details of this User module that cannot be accessed from the outside world. We are not callling new User() here, on pur‐ pose, despite the fact that probably seems more common to most readers. User() is just a func‐ tion, not a class to be instantiated, so it’s just called normally. Using new would be inappropri‐ ate and actually waste resources. Executing User() creates an instance of the User module—a whole new scope is created, and thus a whole new copy of each of these inner variables/functions. We assign this instance to fred. If we run User() again, we’d get a new instance entirely separate from fred. The inner doLogin() function has a closure over username and pass word, meaning it will retain its access to them even after the User() function finishes running. publicAPI is an object with one property/method on it, login, which is a reference to the inner doLogin() function. When we return publicAPI from User(), it becomes the instance we call fred. At this point, the outer User() function has finished executing. Nor‐ mally, you’d think the inner variables like username and password have gone away. But here they have not, because there’s a closure in the login() function keeping them alive. Functions as Values | 51
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 52-52 | Added on Monday, November 21, 2016 8:05:26 AM
+  function doLogin(user,pw) {
+    username = user;
+    password = pw; // do the rest of the login work
+  }
 
-That’s why we can call fred.login(..)—the same as calling the inner doLogin(..)—and it can still access username and password inner variables. There’s a good chance that with just this brief glimpse at closure and the module pattern, some of it is still a bit confusing. That’s OK! It takes some work to wrap your brain around it. From here, go read the Scope & Closures title of this series for a much more in-depth exploration
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 52-52 | Added on Monday, November 21, 2016 8:06:09 AM
+  var publicAPI = {
+    login: doLogin
+  };
 
-If a function has a this reference inside it, that this reference usu‐ ally points to an object. But which object it points to depends on how the function was called
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 53-53 | Added on Monday, November 21, 2016 10:01:59 PM
+  return publicAPI;
+}
 
-Bottom line: to understand what this points to, you have to exam‐ ine how the function in question was called. It will be one of those four ways just shown, and that will then answer what this is
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 54-54 | Added on Monday, November 21, 2016 10:07:28 PM
+// create a `User` module instance
+var fred = User();
+fred.login( "fred", "12Battery34!" );
 
-The a property doesn’t actually exist on the bar object, but because bar is prototype-linked to foo, JavaScript automatically falls back to looking for a on the foo object, where it’s found. This linkage may seem like a strange feature of the language. The most common way this feature is used—and I would argue, abused —is to try to emulate/fake a “class” mechanism with “inheritance.” But a more natural way of applying prototypes is a pattern called “behavior delegation,” where you intentionally design your linked objects to be able to delegate from one to the other for parts of the needed behavior. For more information about prototypes and behavior delegation, see Chapters 4-6 of the this & Object Prototypes title of this series. 54 | Chapter 2: Into JavaScript
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 56-56 | Added on Monday, November 21, 2016 10:10:18 PM
+```
 
-The check we do here takes advantage of a quirk with NaN values, which is that they’re the only value in the whole language that is not equal to itself. So the NaN value is the only one that would make x !== x be true
-==========
-You Don't Know JS - Up _ Going  
-- Your Highlight on page 56-56 | Added on Monday, November 21, 2016 10:11:15 PM
+The `User()` function serves as an `outer scope` that holds the variables `username` and `password`, as well as the inner `doLogin()` function; these are all private inner details of this `User` module that cannot be accessed from the outside world. We are not calling new `User()` here, on purpose, despite the fact that probably seems more common to most readers. `User()` is just a function, not a class to be instantiated, so it’s just called normally. Using `new` would be inappropriate and actually waste resources. Executing `User()` creates an instance of the User module a whole new `scope` is created, and thus a whole new copy of each of these inner variables/functions. We assign this instance to `fred`. If we run `User()` again, we’d get a new instance entirely separate from `fred`. The inner `doLogin()` function has a closure over `username` and `password`, meaning it will retain its access to them even after the `User()` function finishes running. `publicAPI` is an object with one property/method on it, `login`, which is a reference to the inner `doLogin()` function. When we return `publicAPI` from `User()`, it becomes the instance we call `fred`. At this point, the outer `User()` function has finished executing. Normally, you’d think the inner variables like `username` and `password` have gone away. But here they have not, because there’s a closure in the `login()` function keeping them alive.
 
-So the better option is to use a tool that converts your newer code into older code equivalents. This process is commonly called “tran‐ spiling,” a term for transforming + compiling.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 1-1 | Added on Monday, November 21, 2016 10:20:54 PM
+That’s why we can call `fred`. `login(..)` — the same as calling the inner `doLogin(..)` — and it can still access `username` and `password` inner variables. There’s a good chance that with just this brief glimpse at `closure` and the `module pattern`, some of it is still a bit confusing. That’s OK! It takes some work to wrap your brain around it.
+
+If a function has a `this` reference inside it, that `this` reference usually points to an object. But which object it points to depends on how the function was called
+
+Bottom line: to understand what `this` points to, you have to examine how the function in question was called. It will be one of those four ways just shown.
+
+The `a` property doesn’t actually exist on the `bar` object, but because `bar` is `prototype-linked` to `foo`, JavaScript automatically falls back to looking for a on the `foo` object, where it’s found. This linkage may seem like a strange feature of the language. The most common way this feature is used - and I would argue, abused — is to try to emulate/fake a “class” mechanism with “inheritance.” But a more natural way of applying prototypes is a pattern called `behavior delegation`, where you intentionally design your linked objects to be able to delegate from one to the other for parts of the needed behavior.
+
+The check we do here takes advantage of a quirk with `NaN` values, which is that they’re the only value in the whole language that is not equal to itself. So the `NaN` value is the only one that would make `x !== x` be `true`
+
+So the better option is to use a tool that converts your newer code into older code equivalents. This process is commonly called `tran‐ spiling` a term for transforming + compiling.
+
+#Scope And Closure
 
 One of the most fundamental paradigms of nearly all programming languages is the ability to store values in variables, and later retrieve or modify those values. In fact, the ability to store values and pull values out of variables is what gives a program state
 ==========
