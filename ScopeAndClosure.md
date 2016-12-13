@@ -1,46 +1,29 @@
 #Scope And Closure
 
 One of the most fundamental paradigms of nearly all programming languages is the ability to store values in variables, and later retrieve or modify those values. In fact, the ability to store values and pull values out of variables is what gives a program state
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 2-2 | Added on Tuesday, November 22, 2016 7:54:39 AM
 
-Tokenizing/Lexing Breaking up a string of characters into meaningful (to the lan‐ guage) chunks, called tokens
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 2-2 | Added on Tuesday, November 22, 2016 7:55:08 AM
+`Tokenizing/Lexing` : Breaking up a string of characters into meaningful (to the language) chunks, called tokens
 
-The difference between tokenizing and lexing is subtle and academic, but it centers on whether or not these tokens are identified in a stateless or stateful way. Put simply, if the tokenizer were to invoke stateful parsing rules to fig‐ ure out whether a should be considered a distinct token or just part of another token, that would be lexing
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 2-2 | Added on Tuesday, November 22, 2016 7:55:26 AM
+The difference between `tokenizing` and `lexing` is subtle and academic, but it centers on whether or not these tokens are identified in a `stateless` or `stateful` way. Put simply, if the tokenizer were to invoke stateful parsing rules to figure out whether a should be considered a distinct token or just part of another token, that would be lexing.
 
-Parsing taking a stream (array) of tokens and turning it into a tree of nested elements, which collectively represent the grammatical structure of the program. This tree is called an “AST” (abstract syntax tree). The tree for var a = 2; might start with a top-level node called VariableDeclaration, with a child node called Identifier (whose value is a), and another child called AssignmentExpres sion, which itself has a child called NumericLiteral (whose value is 2). Code-Generation The process of taking an AST and turning it into executable code. This part varies greatly depending on the language, the platform it’s targeting, and so on. So, rather than get mired in details, we’ll just handwave and say that there’s a way to take our previously described AST for var a = 2; and turn it into a set of machine instructions to actually create 2 | Chapter 1: What Is Scope?
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 3-3 | Added on Tuesday, November 22, 2016 7:56:35 AM
+Parsing taking a stream (array) of tokens and turning it into a tree of nested elements, which collectively represent the grammatical structure of the program. This tree is called an “AST” (abstract syntax tree). The tree for `var a = 2;` might start with a top-level node called `VariableDeclaration`, with a child node called `Identifier` (whose value is a), and another child called `AssignmentExpression`, which itself has a child called `NumericLiteral` (whose value is 2).
 
-The JavaScript engine is vastly more complex than just those three steps, as are most other language compilers. For instance, in the process of parsing and code-generation, there are certainly steps to optimize the performance of the execution, including collapsing re‐ dundant elements, etc. So, I’m painting only with broad strokes here. But I think you’ll see shortly why these details we do cover, even at a high level, are relevant. For one thing, JavaScript engines don’t get the luxury (like other lan‐ guage compilers) of having plenty of time to optimize, because Java‐ Script compilation doesn’t happen in a build step ahead of time, as with other languages. For JavaScript, the compilation that occurs happens, in many cases, mere microseconds (or less!) before the code is executed. To ensure the fastest performance, JS engines use all kinds of tricks (like JITs, which lazy compile and even hot recompile, etc.) that are well beyond the “scope” of our discussion here. Let’s just say, for simplicity sake, that any snippet of JavaScript has to be compiled before (usually right before!) it’s executed. So, the JS com‐ piler will take the program var a = 2; and compile it first, and then be ready to execute it, usually right away. Understanding Scope The way we will approach learning about scope is to think of the pro‐ cess in terms of a conversation. But, who is having the conversation? The Cast Let’s meet the cast of characters that interact to process the program var a = 2;, so we understand their conversations that we’ll listen in on shortly: Understanding Scope | 3
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 4-4 | Added on Tuesday, November 22, 2016 7:58:26 AM
+`Code-Generation` : The process of taking an AST and turning it into executable code. This part varies greatly depending on the language, the platform it’s targeting, and so on. So, rather than get mired in details, we’ll just handwave and say that there’s a way to take our previously described AST for `var a = 2;` and turn it into a set of machine instructions to actually create 2.
 
-Scope Another friend of Engine; collects and maintains a look-up list of all the declared identifiers (variables), and enforces a strict set of rules as to how these are accessible to currently executing code
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 4-4 | Added on Tuesday, November 22, 2016 7:59:08 AM
+The `JavaScript engine` is vastly more complex than just those three steps, as are most other language compilers. For instance, in the process of parsing and code-generation, there are certainly steps to optimize the performance of the execution, including collapsing redundant elements, etc. So, I’m painting only with broad strokes here. But I think you’ll see shortly why these details we do cover, even at a high level, are relevant. For one thing, JavaScript engines don’t get the luxury (like other language compilers) of `having plenty of time to optimize`, because JavaScript compilation doesn’t happen in a build step ahead of time, as with other languages. For JavaScript, the compilation that occurs happens, in many cases, mere microseconds (or less!) before the code is executed. To ensure the fastest performance, JS engines use all kinds of tricks (like `JITs`, which lazy compile and even hot recompile, etc.) that are well beyond the “scope” of our discussion here. Let’s just say, for simplicity sake, that any snippet of JavaScript has to be compiled before (usually right before!) it’s executed. So, the JS compiler will take the program `var a = 2;` and compile it first, and then be ready to execute it, usually right away.
 
-Engine sees two distinct statements, one that Compiler will handle during compilation, and one that Engine will handle during execution. So, let’s break down how Engine and friends will approach the program var a = 2;. The first thing Compiler will do with this program is perform lexing to break it down into tokens, which it will then parse into a tree. But when Compiler gets to code generation, it will treat this program somewhat differently than perhaps assumed. A reasonable assumption would be that Compiler will produce code that could be summed up by this pseudocode: “Allocate memory for a variable, label it a, then stick the value 2 into that variable.” Unfortu‐ nately, that’s not quite accurate. Compiler will instead proceed as: 1. Encountering var a, Compiler asks Scope to see if a variable a already exists for that particular scope collection. If so, Compiler ignores this declaration and moves on. Otherwise, Compiler asks Scope to declare a new variable called a for that scope collection. 2. Compiler then produces code for Engine to later execute, to han‐ dle the a = 2 assignment. The code Engine runs will first ask Scope 4 | Chapter 1: What Is Scope?
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 5-5 | Added on Tuesday, November 22, 2016 8:00:34 AM
+### Understanding Scope
+The way we will approach learning about `scope` is to think of the process in terms of a conversation. But, who is having the conversation? Let’s meet the cast of characters that interact to process the program `var a = 2;`, so we understand their conversations that we’ll listen in on shortly.
 
-To summarize: two distinct actions are taken for a variable assignment: First, Compiler declares a variable (if not previously declared) in the current Scope, and second, when executing, Engine looks up the vari‐ able in Scope and assigns to it, if found
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 5-5 | Added on Tuesday, November 22, 2016 8:01:12 AM
+`Scope` Another friend of `Engine`; collects and maintains a look-up list of all the declared identifiers (variables), and enforces a strict set of rules as to how these are accessible to currently executing code
 
-In our case, it is said that Engine would be performing an LHS lookup for the variable a. The other type of look-up is called RHS
+`Engine` sees two distinct statements, one that `Compiler` will handle during compilation, and one that `Engine` will handle during execution. So, let’s break down how `Engine` and friends will approach the program `var a = 2;`. The first thing `Compiler` will do with this program is perform `lexing` to break it down into `tokens`, which it will then `parse` into a `tree`. But when `Compiler` gets to code generation, it will treat this program somewhat differently than perhaps assumed. A reasonable assumption would be that `Compiler` will produce code that could be summed up by this pseudocode: `Allocate memory for a variable, label it a, then stick the value 2 into that variable.` Unfortunately, that’s not quite accurate. `Compiler` will instead proceed as:
+1. Encountering var a, `Compiler` asks `Scope` to see if a variable a already exists for that particular scope collection. If so, `Compiler` ignores this declaration and moves on. Otherwise, `Compiler` asks `Scope` to declare a new variable called `a` for that scope collection.
+2. `Compiler` then produces code for `Engine` to later execute, to handle the `a = 2` assignment.
+
+To summarize: two distinct actions are taken for a `variable assignment`: First, `Compiler` declares a variable (if not previously declared) in the current `Scope`, and second, when executing, `Engine` looks up the variable in `Scope` and assigns to it, if found.
+
+In our case, it is said that `Engine` would be performing an `LHS lookup` for the variable `a`. The other type of look-up is called `RHS`
 ==========
 You Don't Know JS - Scope _ Closures  
 - Your Highlight on page 5-5 | Added on Tuesday, November 22, 2016 8:01:33 AM
