@@ -24,61 +24,25 @@ The way we will approach learning about `scope` is to think of the process in te
 To summarize: two distinct actions are taken for a `variable assignment`: First, `Compiler` declares a variable (if not previously declared) in the current `Scope`, and second, when executing, `Engine` looks up the variable in `Scope` and assigns to it, if found.
 
 In our case, it is said that `Engine` would be performing an `LHS lookup` for the variable `a`. The other type of look-up is called `RHS`
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 5-5 | Added on Tuesday, November 22, 2016 8:01:33 AM
+In other words, an `LHS` look-up is done when a variable appears on the `lefthand side of an assignment operation`, and an `RHS` look-up is done when a variable appears on the `righthand side of an assignment operation`
 
-In other words, an LHS look-up is done when a variable appears on the lefthand side of an assignment operation, and an RHS look-up is done when a variable appears on the righthand side of an assignment operation
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 5-5 | Added on Tuesday, November 22, 2016 8:02:25 AM
+Being slightly glib for a moment, you could think RHS instead means "retrieve his/her source (value)," implying that RHS means "go get the value of…"
 
-Being slightly glib for a moment, you could think RHS instead means “retrieve his/her source (value),” implying that RHS means “go get the value of…
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 6-6 | Added on Tuesday, November 22, 2016 8:02:55 AM
+When I say: `console.log( a );` The reference to `a` is an RHS reference, because nothing is being assigned to `a` here. Instead, we’re looking up to retrieve the value of `a`, so that the value can be passed to `console.log(..)`. By contrast: `a = 2;` The reference to `a` here is an LHS reference, because we don’t actually care what the current value is, we simply want to find the variable as a target for the `= 2` assignment operation.
+"Who’s the target of the assignment (LHS)?"" and "Who’s the source of the assignment (RHS)?"
 
-When I say: console.log( a ); The reference to a is an RHS reference, because nothing is being as‐ signed to a here. Instead, we’re looking up to retrieve the value of a, so that the value can be passed to console.log(..). By contrast: a = 2; The reference to a here is an LHS reference, because we don’t actually care what the current value is, we simply want to find the variable as a target for the = 2 assignment operation
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 6-6 | Added on Tuesday, November 22, 2016 8:03:20 AM
+#### Scope
+Just as a block or function is nested inside another block or function, scopes are nested inside other scopes. So, if a variable cannot be found in the immediate scope, Engine consults the next outer containing scope, continuing until is found or until the outermost (a.k.a., global) scope has been reached.
 
-Who’s the target of the assignment (LHS)?” and “Who’s the source of the assignment (RHS)?”
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 8-8 | Added on Tuesday, November 22, 2016 8:08:37 AM
+The simple rules for traversing nested scope: Engine starts at the currently executing scope, looks for the variable there, then if not found, keeps going up one level, and so on. If the outermost global scope is reached, the search stops, whether it finds the variable or not.
 
-Just as a block or function is nested inside another block or function, scopes are nested inside other scopes. So, if a variable cannot be found in the immediate scope, Engine consults the next outercontaining
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 9-9 | Added on Tuesday, November 22, 2016 8:08:53 AM
+`Strict Mode` which was added in ES5, has a number of different behaviors from normal/relaxed/lazy mode. One such behavior is that it disallows the automatic/implicit global variable creation. In that case, there would be no global scoped variable to hand back from an LHS look-up, and Engine would throw a `ReferenceError` similarly to the RHS case
 
-scope, continuing until is found or until the outermost (a.k.a., global) scope has been reached
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 9-9 | Added on Wednesday, November 23, 2016 7:33:20 AM
+There are two predominant models for how scope works. The first of these is by far the most common, used by the vast majority of programming languages. It’s called `lexical scope`, and we will examine it in depth. The other model, which is still used by some languages (such as Bash scripting, some modes in Perl, etc) is called dynamic scope.
 
-The simple rules for traversing nested scope: Engine starts at the cur‐ rently executing scope, looks for the variable there, then if not found, keeps going up one level, and so on. If the outermost global scope is reached, the search stops, whether it finds the variable or
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 11-11 | Added on Wednesday, November 23, 2016 7:35:51 AM
+To define it somewhat circularly, `lexical scope is scope that is defined at lexing time`. In other words, lexical scope is based on where variables and blocks of scope are authored, by you, at write time, and thus is (mostly) set in stone by the time the lexer processes your code
 
-Strict Mode,” which was added in ES5, has a number of different be‐ haviors from normal/relaxed/lazy mode. One such behavior is that it disallows the automatic/implicit global variable creation. In that case, there would be no global scoped variable to hand back from an LHS look-up, and Engine would throw a ReferenceError similarly to the RHS case
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 13-13 | Added on Wednesday, November 23, 2016 7:38:55 AM
-
-There are two predominant models for how scope works. The first of these is by far the most common, used by the vast majority of pro‐ gramming languages. It’s called lexical scope, and we will examine it in depth. The other model, which is still used by some languages (such as Bash scripting, some modes in Perl, etc) is called dynamic scope.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 13-13 | Added on Wednesday, November 23, 2016 7:39:53 AM
-
-To define it somewhat circularly, lexical scope is scope that is defined at lexing time. In other words, lexical scope is based on where variables and blocks of scope are authored, by you, at write time, and thus is (mostly) set in stone by the time the lexer processes your code
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 15-15 | Added on Wednesday, November 23, 2016 7:43:11 AM
-
-Scope look-up stops once it finds the first match. The same identifier name can be specified at multiple layers of nested scope, which is called “shadowing” (the inner identifer “shadows” the outer identifier
+Scope look-up stops once it finds the first match. The same identifier name can be specified at multiple layers of nested scope, which is called `shadowing` (the inner identifer “shadows” the outer identifier)
 ==========
 You Don't Know JS - Scope _ Closures  
 - Your Highlight on page 16-16 | Added on Wednesday, November 23, 2016 7:43:55 AM
