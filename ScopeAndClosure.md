@@ -42,152 +42,144 @@ There are two predominant models for how scope works. The first of these is by f
 
 To define it somewhat circularly, `lexical scope is scope that is defined at lexing time`. In other words, lexical scope is based on where variables and blocks of scope are authored, by you, at write time, and thus is (mostly) set in stone by the time the lexer processes your code
 
-Scope look-up stops once it finds the first match. The same identifier name can be specified at multiple layers of nested scope, which is called `shadowing` (the inner identifer “shadows” the outer identifier)
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 16-16 | Added on Wednesday, November 23, 2016 7:43:55 AM
+Scope look-up stops once it finds the first match. The same identifier name can be specified at multiple layers of nested scope, which is called `shadowing` (the inner identifier “shadows” the outer identifier)
 
-Global variables are automatically also properties of the glob‐ al object (window in browsers, etc.), so it is possible to refer‐ ence a global variable not directly by its lexical name, but in‐ stead indirectly as a property reference of the global object. window.a This technique gives access to a global variable that would otherwise be inaccessible due to it being shadowed. However, non-global shadowed variables cannot be accessed
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 16-16 | Added on Wednesday, November 23, 2016 7:44:15 AM
+Global variables are automatically also properties of the global object (window in browsers, etc.), so it is possible to reference a global variable not directly by its lexical name, but instead indirectly as a property reference of the global object. window.a This technique gives access to a global variable that would otherwise be inaccessible due to it being shadowed. However, non-global shadowed variables cannot be accessed no matter where a function is invoked from, or even how it is invoked, its lexical scope is only defined by where the function was declared
 
-No matter where a function is invoked from, or even how it is invoked, its lexical scope is only defined by where the function was declared
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 16-16 | Added on Wednesday, November 23, 2016 7:44:57 AM
+The lexical scope look-up process only applies to first-class identifiers, such as the a, b, and c. If you had a reference to foo.bar.baz in a piece of code, the lexical scope look-up would apply to finding the foo identifier, but once it locates that variable, object property-access rules take over to resolve the bar and baz properties, respectively
 
-The lexical scope look-up process only applies to first-class identifiers, such as the a, b, and c. If you had a reference to foo.bar.baz in a piece
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 16-16 | Added on Wednesday, November 23, 2016 7:45:07 AM
-
-of code, the lexical scope look-up would apply to finding the foo identifier, but once it locates that variable, object property-access rules take over to resolve the bar and baz properties, respectively
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 21-21 | Added on Wednesday, November 23, 2016 7:50:22 AM
-
-The JavaScript engine has a number of performance optimizations that it performs during the compilation phase. Some of these boil down to being able to essentially statically analyze the code as it lexes, and pre‐ determine where all the variable and function declarations are, so that it takes less effort to resolve identifiers during execution
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 24-24 | Added on Wednesday, November 23, 2016 8:00:38 AM
+The JavaScript engine has a number of performance optimizations that it performs during the compilation phase. Some of these boil down to being able to essentially statically analyze the code as it lexes, and predetermine where all the variable and function declarations are, so that it takes less effort to resolve identifiers during execution
 
 But the inverse thinking is equally powerful and useful: take any arbitrary section of code you’ve written and wrap a function declaration around it, which in effect “hides” the code
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 25-25 | Added on Wednesday, November 23, 2016 8:01:10 AM
 
-There’s a variety of reasons motivating this scope-based hiding. They tend to arise from the software design principle Principle of Least Privilege
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 25-25 | Added on Wednesday, November 23, 2016 8:02:11 AM
-
+There’s a variety of reasons motivating this scope-based hiding. They tend to arise from the software design principle `Principle of Least Privilege` :
 This principle states that in the design of software, such as the API for a module/object, you should expose only what is minimally necessary, and “hide” everything else
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 27-27 | Added on Wednesday, November 23, 2016 8:06:11 AM
 
-Such libraries typically will create a single variable declaration, often an object, with a sufficiently unique name, in the global scope. This
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 27-27 | Added on Wednesday, November 23, 2016 8:06:23 AM
+Such libraries typically will create a single variable declaration, often an object, with a sufficiently unique name, in the global scope. This object is then used as a namespace for that library, where all specific exposures of functionality are made as properties off that object (namespace), rather than as top-level lexically scoped identifiers themselves. For example:
 
-object is then used as a namespace for that library, where all specific exposures of functionality are made as properties off that object (namespace), rather than as top-level lexically scoped identifiers them‐ selves. For example: var MyReallyCoolLibrary = { awesome: "stuff", doSomething: function() { // ... }, doAnotherThing: function() { // ... } };
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 27-27 | Added on Wednesday, November 23, 2016 8:07:02 AM
+```JavaScript
+var MyReallyCoolLibrary = {
+  awesome: "stuff",
+  doSomething: function() {
+    // ...
+  },
+  doAnotherThing: function() {
+    // ...
+  }
+};
+```
 
-Another option for collision avoidance is the more modern module approach, using any of various dependency managers
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 27-27 | Added on Wednesday, November 23, 2016 8:07:34 AM
+
+Another option for `collision avoidance` is the more modern `module approach`, using any of various dependency managers
 
 Using these tools, no libraries ever add any identifiers to the global scope, but are instead required to have their identifier(s) be explicitly imported into another specific scope through usage of the dependency manager’s various mechanisms
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 28-28 | Added on Wednesday, November 23, 2016 9:37:16 PM
+```JavaScript
+var a = 2;
+function foo() {
+  // <-- insert this
+  var a = 3;
+  console.log( a ); // 3
+} // <-- and this
+foo(); // <-- and this
+console.log( a ); // 2
+```
 
-var a = 2; function foo() { // <-- insert this var a = 3; console.log( a ); // 3 } // <-- and this foo(); // <-- and this console.log( a ); // 2 While this technique works, it is not necessarily very ideal. There are a few problems it introduces. The first is that we have to declare a named-function foo(), which means that the identifier name foo itself “pollutes” the enclosing scope (global, in this case). We also have to explicitly call the function by name (foo()) so that the wrapped code actually executes.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 28-28 | Added on Wednesday, November 23, 2016 9:38:37 PM
+While this technique works, it is not necessarily very ideal. There are a few problems it introduces. The first is that we have to declare a named-function foo(), which means that the identifier name foo itself “pollutes” the enclosing scope (global, in this case). We also have to explicitly call the function by name (foo()) so that the wrapped code actually executes.
 
-var a = 2; (function foo(){ // <-- insert this var a = 3; console.log( a ); /
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 29-29 | Added on Wednesday, November 23, 2016 9:38:46 PM
+```JavaScript
+var a = 2;
+(function foo(){ // <-- insert this
+  var a = 3;
+  console.log( a ); /
+})(); // <-- and this
+console.log( a ); //
+```
+Instead of treating the function as a standard declaration, the function is treated as a `function expression`
 
-})(); // <-- and this console.log( a ); //
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 29-29 | Added on Wednesday, November 23, 2016 9:39:13 PM
+The easiest way to distinguish `declaration` vs. `expression` is the position of the word function in the statement (not just a line, but a distinct statement). If function is the very first thing in the statement, then it’s a function declaration. Otherwise, it’s a function expression. The key difference we can observe here between a function declaration and a function expression relates to where its name is bound as an identifier. Compare the previous two snippets. In the first snippet, the name foo is bound in the enclosing scope, and we call it directly with foo(). In the second snippet, the name foo is not bound in the enclosing scope, but instead is bound only inside of its own function. In other words, `(function foo(){ .. })` as an expression means the identifier foo is found only in the scope where the .. indicates, not in the outer scope. Hiding the name foo inside itself means it does not pollute the enclosing scope unnecessarily. Anonymous Versus Named You are probably most familiar with function expressions as callback parameters, such as:
+```JavaScript
+setTimeout( function(){
+  console.log("I waited 1 second!");
+}, 1000 );
+```
+This is called an `anonymous function expression`, because function() has no name identifier on it. Function expressions can be anonymous, but function declarations cannot omit the name—that would be illegal JS grammar.
 
-Instead of treating the function as a standard declaration, the function is treated as a functionexpression
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 29-29 | Added on Wednesday, November 23, 2016 9:39:30 PM
+The best practice is to `always name your function expressions`:
+```JavaScript
+setTimeout( function timeoutHandler(){ // <-- Look, I have a // name!
+  console.log( "I waited 1 second!" );
+}, 1000 );
+```
 
-The easiest way to distinguish declaration vs. expression is the position of the word function in the statement (not just a line, but a distinct statement). If function is the very first thing in the statement, then it’s a function declaration. Otherwise, it’s a function expression. The key difference we can observe here between a function declaration and a function expression relates to where its name is bound as an identifier. Compare the previous two snippets. In the first snippet, the name foo is bound in the enclosing scope, and we call it directly with foo(). In the second snippet, the name foo is not bound in the enclosing scope, but instead is bound only inside of its own function. In other words, (function foo(){ .. }) as an expression means the identifier foo is found only in the scope where the .. indicates, not in the outer scope. Hiding the name foo inside itself means it does not pollute the enclosing scope unnecessarily. Anonymous Versus Named You are probably most familiar with function expressions as callback parameters, such as: setTimeout( function(){ console.log("I waited 1 second!"); }, 1000 ); This is called an anonymous function expression, because function() … has no name identifier on it. Function expressions can be anony‐ mous, but function declarations cannot omit the name—that would be illegal JS grammar. Functions as Scopes | 29
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 30-30 | Added on Wednesday, November 23, 2016 9:43:27 PM
+Now that we have a function as an expression by virtue of wrapping it in a ( ) pair, we can execute that function by adding another () on the end, like `(function foo(){ .. })()`. The first enclosing ( ) pair makes the function an expression, and the second () executes the function.
 
-The best practice is to always name your function expressions: setTimeout( function timeoutHandler(){ // <-- Look, I have a // name! console.log( "I waited 1 second!" ); }, 1000 );
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 30-30 | Added on Wednesday, November 23, 2016 9:44:11 PM
+That’s what block-scoping is all about. Declaring variables as close as possible, as local as possible, to where they will be used. Another example:
+```JavaScript
+var foo = true;
+if (foo) {
+  var bar = foo * 2;
+  bar = something( bar );
+  console.log( bar );
+}
+```
 
-Now that we have a function as an expression by virtue of wrapping it in a ( ) pair, we can execute that function by adding another () on the end, like (function foo(){ .. })(). The first enclosing ( ) pair makes the function an expression, and the second () executes the function.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 33-33 | Added on Wednesday, November 23, 2016 9:51:35 PM
+someReallyBigData variable at all. That means, theoretically, after process(..) runs, the big memory-heavy data structure could be garbage collected. However, it’s quite likely (though implementation dependent) that the JS engine will still have to keep the structure around, since the click function has a closure over the entire scope. Block-scoping can address this concern, making it clearer to the engine that it does not need to keep someReallyBigData around:
 
-That’s what block-scoping is all about. Declaring variables as close as possible, as local as possible, to where they will be used. Another ex‐ ample: var foo = true; if (foo) { var bar = foo * 2; bar = something( bar ); console.log( bar ); }
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 37-37 | Added on Wednesday, November 23, 2016 10:01:19 PM
+```JavaScript
+function process(data) {
+  // do something interesting
+} // anything declared inside this block can go away after!
 
-lyBigData variable at all. That means, theoretically, after pro cess(..) runs, the big memory-heavy data structure could be garbage collected. However, it’s quite likely (though implementation depen‐ dent) that the JS engine will still have to keep the structure around, since the click function has a closure over the entire scope. Block-scoping can address this concern, making it clearer to the en‐ gine that it does not need to keep someReallyBigData around: function process(data) { // do something interesting } // anything declared inside this block can go away after! { let someReallyBigData = { .. }; process( someReallyBigData ); } var btn = document.getElementById( "my_button"
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 37-37 | Added on Wednesday, November 23, 2016 10:01:33 PM
+{
+  let someReallyBigData = { .. };
+  process( someReallyBigData );
+}
 
-btn.addEventListener( "click", function click(evt){ console.log("button clicked"); }, /*capturingPhase=*/false ); Declaring explicit blocks for variables to locally bind to is a powerful tool that you can add to your code toolbox
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 40-40 | Added on Wednesday, November 23, 2016 10:05:36 PM
+var btn = document.getElementById( "my_button");
 
-In ES6, the let keyword (a cousin to the var keyword) is introduced to allow declarations of variables in any arbitrary block of code. if (..) { let a = 2; } will declare a variable a that essentially hijacks the scope of the if’s { .. } block and attaches itself there
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 42-42 | Added on Thursday, November 24, 2016 7:27:07 AM
+btn.addEventListener( "click", function click(evt){
+  console.log("button clicked");
+}, /*capturingPhase=*/false );
+```
 
-When you see var a = 2;, you probably think of that as one statement. But JavaScript actually thinks of it as two statements: var a; and a = 2;. The first statement, the declaration, is processed during the com
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 42-42 | Added on Thursday, November 24, 2016 7:27:16 AM
+Declaring explicit blocks for variables to locally bind to is a powerful tool that you can add to your code toolbox
 
-pilation phase. The second statement, the assignment, is left in place for the execution phase.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 43-43 | Added on Thursday, November 24, 2016 7:28:15 AM
+In ES6, the `let` keyword (a cousin to the var keyword) is introduced to allow declarations of variables in any arbitrary block of code. ```JavaScript
+if (..) {
+  let a = 2;
+}
+```
+will declare a variable a that essentially hijacks the scope of the if’s { .. } block and attaches itself there
+
+
+
+When you see `var a = 2;`, you probably think of that as one statement. But JavaScript actually thinks of it as two statements: var a; and a = 2;. The first statement, the declaration, is processed during the compilation phase. The second statement, the assignment, is left in place for the execution phase.
 
 So, one way of thinking, sort of metaphorically, about this process, is that variable and function declarations are “moved” from where they appear in the flow of the code to the top of the code. This gives rise to the name hoisting
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 44-44 | Added on Thursday, November 24, 2016 7:32:29 AM
 
-Function declarations are hoisted, as we just saw. But function ex‐ pressions are not. foo(); // not ReferenceError, but TypeError! var foo = function bar() { // ... };
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 44-44 | Added on Thursday, November 24, 2016 7:38:02 AM
+Function declarations are hoisted, as we just saw. But function expressions are not. `foo(); // not ReferenceError, but TypeError!` `var foo = function bar() { // ... };`
 
-recall that even though it’s a named function expression, the name identifier is not available in the enclosing scope: foo(); // TypeError bar(); // ReferenceError var foo = function bar() { // ... }; This snippet is more accurately interpreted (with hoisting) as: var foo; foo(); // TypeError bar(); // ReferenceError foo = function() { var bar = ...self... // ...
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 48-48 | Added on Thursday, November 24, 2016 7:43:19 AM
+recall that even though it’s a named function expression, the name identifier is not available in the enclosing scope:
+```JavaScript
+foo(); // TypeError
+bar(); // ReferenceError
+var foo = function bar() {
+  // ...
+};
+```
 
-Closure is when a function is able to remember and access its lexical scope even when that function is executing outside its lexical scope
+This snippet is more accurately interpreted (with hoisting) as:
+```JavaScript
+var foo; 
+foo(); // TypeError
+bar(); // ReferenceError
+foo = function() {
+  var bar = ...self...
+  // ...
+}
+```
+
+`Closure` is when a function is able to remember and access its lexical scope even when that function is executing outside its lexical scope
 ==========
 You Don't Know JS - Scope _ Closures  
 - Your Highlight on page 49-49 | Added on Thursday, November 24, 2016 7:46:17 AM
