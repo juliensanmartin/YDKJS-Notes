@@ -212,206 +212,245 @@ var b = bar( 3 ); // 2 3
 console.log( b ); // 5
 ```
 
-Another way to express this pattern is to create a reusable helper: function foo(something) { console.log( this.a, something ); return this.a + something; } // simple `bind` helper function bind(fn, obj) { return function() { return fn.apply( obj, arguments ); }; } var obj = { a: 2 }; Nothing but Rules | 19
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 20-20 | Added on Sunday, November 27, 2016 5:12:10 PM
+Another way to express this pattern is to create a reusable helper:
 
-var bar = bind( foo, obj ); var b = bar( 3 ); // 2 3 console.log( b ); // 5 Since hard binding is such a common pattern, it’s provided with a builtin utility as of ES5, Function.prototype.bind, and it’s used like this: function foo(something) { console.log( this.a, something ); return this.a + something; } var obj = { a: 2 }; var bar = foo.bind( obj ); var b = bar( 3 ); // 2 3 console.log( b ); // 5 bind(..) returns a new function that is hardcoded to call the original function with the this context set as you specified. API call “contexts” Many libraries’ functions, and indeed many new built-in functions in the JavaScript language and host environment, provide an optional parameter, usually called “context,” which is designed as a workaround for you not having to use bind(..) to ensure your callback function uses a particular this. For instance: function foo(el) { console.log( el, this.id ); } var obj = { id: "awesome" }; // use `obj` as `this` for `foo(..)` calls [1, 2, 3].forEach( foo, obj ); // 1 awesome 2 awesome 3 awesome Internally, these various functions almost certainly use explicit bind‐ ing via call(..) or apply(..), saving you the trouble. 20 | Chapter 2: this All Makes Sense Now!
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 21-21 | Added on Sunday, November 27, 2016 5:13:24 PM
+```JavaScript
+function foo(something) {
+  console.log( this.a, something );
+  return this.a + something;
+}
+// simple `bind` helper
+function bind(fn, obj) {
+  return function() {
+    return fn.apply( obj, arguments );
+  };
+}
+
+var obj = {
+  a: 2
+};
+
+var bar = bind( foo, obj );
+var b = bar( 3 ); // 2 3 c
+onsole.log( b ); // 5
+
+```
+Since hard binding is such a common pattern, it’s provided with a builtin utility as of ES5, Function.prototype.bind, and it’s used like this:
+
+```JavaScript
+function foo(something) {
+  console.log( this.a, something );
+  return this.a + something;
+}
+
+var obj = {
+  a: 2
+};
+
+var bar = foo.bind( obj );
+var b = bar( 3 ); // 2 3
+console.log( b ); // 5
+```
+bind(..) returns a new function that is hardcoded to call the original function with the this context set as you specified. API call “contexts”
+Many libraries’ functions, and indeed many new built-in functions in the JavaScript language and host environment, provide an optional parameter, usually called “context” which is designed as a workaround for you not having to use bind(..) to ensure your callback function uses a particular this.
+For instance:
+```JavaScript
+function foo(el) {
+  console.log( el, this.id );
+}
+
+var obj = {
+  id: "awesome"
+}; // use `obj` as `this` for `foo(..)` calls
+[1, 2, 3].forEach( foo, obj ); // 1 awesome 2 awesome 3 awesome
+```
+Internally, these various functions almost certainly use explicit binding via call(..) or apply(..), saving you the trouble.
 
 new Binding
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 21-21 | Added on Sunday, November 27, 2016 5:14:11 PM
 
-First, let’s redefine what a “constructor” in JavaScript is. In JS, con‐ structors are just functions that happen to be called with the new op‐ erator in front of them
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 21-21 | Added on Sunday, November 27, 2016 5:15:32 PM
+First, let’s redefine what a “constructor” in JavaScript is. In JS, constructors are just functions that happen to be called with the new operator in front of them
 
 When a function is invoked with new in front of it, otherwise known as a constructor call, the following things are done automatically
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 21-21 | Added on Sunday, November 27, 2016 5:15:49 PM
 
-. A brand new object is created (aka constructed) out of thin air. 2. The newly constructed object is [[Prototype]]-linked. 3. The newly constructed object is set as the this binding for that function call
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 22-22 | Added on Sunday, November 27, 2016 5:16:03 PM
+1. A brand new object is created (aka constructed) out of thin air.
+2. The newly constructed object is [[Prototype]]-linked.
+3. The newly constructed object is set as the this binding for that function call
+4. Unless the function returns its own alternate object, the new invoked function call will automatically return the newly constructed object
 
-4. Unless the function returns its own alternate object, the newinvoked function call will automatically return the newly con‐ structed object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 22-22 | Added on Sunday, November 27, 2016 5:16:59 PM
+```JavaScript
+function foo(a) {
+  this.a = a;
+}
 
-function foo(a) { this.a = a; } var bar = new foo( 2 ); console.log( bar.a ); /
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 26-26 | Added on Sunday, November 27, 2016 5:27:43 PM
+var bar = new foo( 2 );
+console.log( bar.a ); // 2
+```
 
-Now, we can summarize the rules for determining this from a func‐ tion call’s call-site, in their order of precedence. Ask these questions in this order, and stop when the first rule applies. 1. Is the function called with new (new binding)? If so, this is the newly constructed object. var bar = new foo() 2. Is the function called with call or apply (explicit binding), even hidden inside a bind hard binding? If so, this is the explicitly specified object. var bar = foo.call( obj2 ) 3. Is the function called with a context (implicit binding), otherwise known as an owning or containing object? If so, this is that con‐ text object. var bar = obj1.foo() 26 | Chapter 2: this All Makes Sense Now!
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 27-27 | Added on Sunday, November 27, 2016 5:27:53 PM
+Now, we can summarize the rules for determining this from a function call’s call-site, in their order of precedence. Ask these questions in this order, and stop when the first rule applies.
+1. Is the function called with new (new binding)? If so, this is the newly constructed object. `var bar = new foo()`
+2. Is the function called with call or apply (explicit binding), even hidden inside a bind hard binding? If so, this is the explicitly specified object. `var bar = foo.call( obj2 )`
+3. Is the function called with a context (implicit binding), otherwise known as an owning or containing object? If so, this is that con‐ text object. `var bar = obj1.foo()`
+4. Otherwise, default the this (default binding). If in strict mode, pick undefined, otherwise pick the global object. `var bar = foo()`
 
-4. Otherwise, default the this (default binding). If in strict mode, pick undefined, otherwise pick the global object. var bar = foo() That’s it. That’s all it takes to understand the rules of this binding for normal function calls. Well…almost
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 27-27 | Added on Sunday, November 27, 2016 9:27:48 PM
+That’s it. That’s all it takes to understand the rules of this binding for normal function calls. Well…almost
 
-It’s quite common to use apply(..) for spreading out arrays of values as parameters to a function call. Similarly, bind(..) can curry pa‐ rameters (preset values), which can be very helpful
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 27-27 | Added on Sunday, November 27, 2016 9:28:21 PM
+It’s quite common to use apply(..) for spreading out arrays of values as parameters to a function call. Similarly, bind(..) can curry parameters(preset values), which can be very helpful
 
-function foo(a,b) { console.log( "a:" + a + ", b:" + b ); } // spreading out array as parameters foo.apply( null, [2, 3] ); // a:2, b:3 // currying with `bind(..)` var bar = foo.bind( null, 2 ); bar( 3 ); // a:2, b:3 Binding Exceptions | 27
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 28-28 | Added on Sunday, November 27, 2016 9:29:46 PM
+```JavaScript
+function foo(a,b) {
+  console.log( "a:" + a + ", b:" + b );
+}
+// spreading out array as parameters
+foo.apply( null, [2, 3] ); // a:2, b:3
+// currying with `bind(..)`
+var bar = foo.bind( null, 2 );
+bar( 3 ); // a:2, b:3
+```
 
 Perhaps a somewhat “safer” practice is to pass a specifically set up object for this that is guaranteed not to be an object that can create problematic side effects in your program. Borrowing terminology from networking (and the military), we can create a “DMZ” (demilitarized zone) object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 29-29 | Added on Sunday, November 27, 2016 9:30:40 PM
 
-Object.create(null
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 29-29 | Added on Sunday, November 27, 2016 9:30:56 PM
+```JavaScript
+function foo(a,b) {
+  console.log( "a:" + a + ", b:" + b );
+}
+// our DMZ empty object
+var ø = Object.create( null );
+// spreading out array as parameters
+foo.apply( ø, [2, 3] ); // a:2
+// currying with `bind(..)`
+var bar = foo.bind( ø, 2 );
+bar( 3 ); // a:2
+```
 
-function foo(a,b) { console.log( "a:" + a + ", b:" + b ); } // our DMZ empty object var ø = Object.create( null ); // spreading out array as parameters foo.apply( ø, [2, 3] ); // a:2
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 29-29 | Added on Sunday, November 27, 2016 9:31:07 PM
+If you find yourself writing this-style code, but most or all the time, you defeat the this mechanism with lexical self = this or arrow function “tricks,” perhaps you should either:
+1. Use only lexical scope and forget the false pretense of this-style code.
+2. Embrace this-style mechanisms completely, including using bind(..) where necessary, and try to avoid self = this and arrow-function “lexical this” tricks
 
-/ currying with `bind(..)` var bar = foo.bind( ø, 2 ); bar( 3 ); // a:2
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 33-33 | Added on Sunday, November 27, 2016 9:35:26 PM
+The literal syntax for an object looks like this:
+```JavaScript
+var myObj = {
+  key: value
+  // ...
+}
+```
 
-If you find yourself writing this-style code, but most or all the time, you defeat the this mechanism with lexical self = this or arrowfunction “tricks,” perhaps you should either: 1. Use only lexical scope and forget the false pretense of this-style code. 2. Embrace this-style mechanisms completely, including using
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 33-33 | Added on Sunday, November 27, 2016 9:35:40 PM
+The constructed form looks like this:
 
-bind(..) where necessary, and try to avoid self = this and arrow-function “lexical this” tricks
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 35-35 | Added on Monday, November 28, 2016 7:22:56 AM
+```JavaScript
+var myObj = new Object();
+myObj.key = value;
+```
 
-The literal syntax for an object looks like this: var myObj = { key: value // ...
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 35-35 | Added on Monday, November 28, 2016 7:23:16 AM
+It’s extremely uncommon to use the “constructed form” for creating objects as just shown. You would pretty much always want to use the literal syntax form. The same will be true of most of the built-in objects (explained later).
+Type Objects are the general building block upon which much of JS is built. They are one of the six primary types (called “language types” in the specification) in JS:
+* string
+* number
+* boolean
+* null
+* undefined
+* object
 
-The constructed form looks like this: var myObj = new Object(); myObj.key = value
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 36-36 | Added on Monday, November 28, 2016 7:36:52 AM
+Note that the simple primitives (string, boolean, number, null, and undefined) are not themselves objects.
+null is sometimes referred to as an object type, but this misconception stems from a bug in the language that causes typeof null to return the string "object" incorrectly (and confusingly). In fact, null is its own primitive type. It’s a common misstatement that “everything in JavaScript is an object.” This is clearly not true. By contrast, there are a few special object subtypes, which we can refer to as complex primitives. function is a subtype of object (technically, a “callable object”).
 
-function is a subtype of object (technically, a “callable object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 36-36 | Added on Monday, November 28, 2016 7:37:17 AM
-
-It’s extremely uncommon to use the “constructed form” for creating objects as just shown. You would pretty much al‐ ways want to use the literal syntax form. The same will be true of most of the built-in objects (explained later). Type Objects are the general building block upon which much of JS is built. They are one of the six primary types (called “language types” in the specification) in JS: • string • number • boolean • null • undefined • object Note that the simple primitives (string, boolean, number, null, and undefined) are not themselves objects. null is sometimes referred to as an object type, but this misconception stems from a bug in the language that causes typeof null to return the string "object" in‐ correctly (and confusingly). In fact, null is its own primitive type. It’s a common misstatement that “everything in JavaScript is an object.” This is clearly not true. By contrast, there are a few special object subtypes, which we can refer to as complex primitives. function is a subtype of object (technically, a “callable object”). Func
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 36-36 | Added on Monday, November 28, 2016 7:37:23 AM
-
-tions in JS are said to be “first class” in that they are basically just normal objects (with callable behavior semantics bolted on), and so they can be handled like any other plain object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 38-38 | Added on Monday, November 28, 2016 7:44:51 AM
+Functions in JS are said to be “first class” in that they are basically just normal objects (with callable behavior semantics bolted on), and so they can be handled like any other plain object
 
 Luckily, the language automatically coerces a string primitive to a String object when necessary, which means you almost never need to explicitly create the Object form. It is strongly preferred by the majority of the JS community to use the literal form for a value, where possible, rather than the constructed object form
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 39-39 | Added on Monday, November 28, 2016 7:50:03 AM
 
-What is stored in the container are these property names, which act as point‐ ers (technically, references) to where the values are stored.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 39-39 | Added on Monday, November 28, 2016 7:50:22 AM
+What is stored in the container are these property names, which act as pointers (technically, references) to where the values are stored.
 
-The .a syntax is usually referred to as “property access,” whereas the ["a"] syntax is usually referred to as “key access
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 39-39 | Added on Monday, November 28, 2016 7:51:15 AM
+The .a syntax is usually referred to as “property access,” whereas the ["a"] syntax is usually referred to as “key access"
 
-var myObject = { a: 2 }; var idx; Contents | 39
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 40-40 | Added on Monday, November 28, 2016 7:51:26 AM
+```JavaScript
+var myObject = {
+  a: 2
+};
 
-if (wantA) { idx = "a"; } // later console.log( myObject[idx] ); // 2
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 40-40 | Added on Monday, November 28, 2016 7:52:21 AM
+var idx;
 
-ES6 adds computed property names, where you can specify an expres‐ sion, surrounded by a [ ] pair, in the key-name position of an objectliteral declaration: var prefix = "foo"; var myObject = { [prefix + "bar"]: "hello", [prefix + "baz"]: "world" }; myObject["foobar"]; // hello myObject["foobaz"]; // world The most common usage of computed property names will probably be for ES6 Symbols, which we will not be covering in detail in this book. In short, they’re a new primitive data type that has an opaque un‐ guessable value (technically a string value). You will be strongly 40 | Chapter 3: Objects
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 41-41 | Added on Monday, November 28, 2016 7:53:40 AM
+if (wantA) {
+  idx = "a";
+}
+// later
+console.log( myObject[idx] ); // 2
+```
 
-discouraged from working with the actual value of a Symbol (which can theoretically be different between different JS engines), so the name of the Symbol, like Symbol.Something (just a made up name!), will be what you use: var myObject = { [Symbol.Something]: "hello world"
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 42-42 | Added on Monday, November 28, 2016 7:56:58 AM
+ES6 adds computed property names, where you can specify an expression, surrounded by a [ ] pair, in the key-name position of an object literal declaration:
 
-Even when you declare a function expression as part of the object literal, that function doesn’t magically belong more to the object— there are still just multiple references to the same function
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 43-43 | Added on Monday, November 28, 2016 7:58:27 AM
+```JavaScript
+var prefix = "foo";
+var myObject = {
+  [prefix + "bar"]: "hello",
+  [prefix + "baz"]: "world"
+};
+
+myObject["foobar"]; // hello
+myObject["foobaz"]; // world
+```
+
+The most common usage of computed property names will probably be for ES6 Symbols, which we will not be covering in detail in this book. In short, they’re a new primitive data type that has an opaque unguessable value (technically a string value). You will be strongly discouraged from working with the actual value of a Symbol (which can theoretically be different between different JS engines), so the name of the Symbol, like Symbol.Something (just a made up name!), will be what you use:
+```JavaScript
+var myObject = {
+  [Symbol.Something]: "hello world"
+};
+```
+
+Even when you declare a function expression as part of the object literal, that function doesn’t magically belong more to the object there are still just multiple references to the same function
 
 Use objects to store key/value pairs, and arrays to store values at numeric indices
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 44-44 | Added on Monday, November 28, 2016 8:00:28 AM
 
 A shallow copy would end up with a on the new object as a copy of the value
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 44-44 | Added on Monday, November 28, 2016 8:00:54 AM
 
-function anotherFunction() { /*..*/ } var anotherObject = { c: true }; var anotherArray = []; var myObject = { a: 2, b: anotherObject, // reference, not a copy! c: anotherArray, // another reference! d: anotherFunction }; anotherArray.push( anotherObject, myObject );
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 44-44 | Added on Monday, November 28, 2016 8:01:13 AM
+```JavaScript
+function anotherFunction() {
+/*..*/
+}
+
+var anotherObject = {
+  c: true
+};
+
+var anotherArray = [];
+var myObject = {
+  a: 2,
+  b: anotherObject, // reference, not a copy!
+  c: anotherArray, // another reference!
+  d: anotherFunction
+};
+
+anotherArray.push( anotherObject, myObject );
+```
 
 A shallow copy would end up with a on the new object as a copy of the value 2, but the b, c, and d properties as just references to the same places as the references in the original object. A deep copy would duplicate not only myObject, but anotherObject and anotherArray. But then we have the issue that anotherArray has references to anotherObject and myObject in it, so those should also be duplicated rather than reference-preserved. Now we have an infinite circular duplication problem because of the circular reference
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 45-45 | Added on Monday, November 28, 2016 8:02:20 AM
 
-One subset solution is that objects that are JSON-safe (that is, can be serialized to a JSON string and then reparsed to an object with the same structure and values) can easily be duplicated with: var newObj = JSON.parse( JSON.stringify( someObj ) );
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 45-45 | Added on Monday, November 28, 2016 8:02:41 AM
+One subset solution is that objects that are JSON-safe (that is, can be serialized to a JSON string and then reparsed to an object with the same structure and values) can easily be duplicated with:
+```JavaScript
+var newObj = JSON.parse( JSON.stringify( someObj ) );
+```
 
 At the same time, a shallow copy is fairly understandable and has far fewer issues, so ES6 has now defined Object.assign(..) for this task
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 45-45 | Added on Monday, November 28, 2016 8:03:08 AM
 
+```JavaScript
 var newObj = Object.assign( {}, myObject )
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 46-46 | Added on Tuesday, November 29, 2016 7:40:17 AM
+```
 
-all properties are described in terms of a property de‐ scriptor. Consider this code: var myObject = { a: 2 }; Object.getOwnPropertyDescriptor( myObject, "a" ); // {
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 46-46 | Added on Tuesday, November 29, 2016 7:40:27 AM
+all properties are described in terms of a property descriptor.
+Consider this code:
+```JavaScript
+var myObject = {
+  a: 2
+};
 
-/ value: 2, // writable: true, // enumerable: true, // configurable: true // } As you can see, the property descriptor (called a “data descriptor” since it’s only for holding a data value) for our normal object property a is much more than just its value of 2. It includes three other character‐ istics: writable, enumerable, and configurable
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 49-49 | Added on Tuesday, November 29, 2016 7:42:49 AM
+Object.getOwnPropertyDescriptor( myObject, "a" );
+// {  
+// value: 2,
+// writable: true,
+// enumerable: true,
+// configurable: true
+// }
 
+```
+As you can see, the property descriptor (called a “data descriptor” since it’s only for holding a data value) for our normal object property a is much more than just its value of 2. It includes three other characteristics: writable, enumerable, and configurable.
 delete is only used to remove object properties
 ==========
 You Don't Know JS - This _ Object Prototypes
