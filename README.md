@@ -3,7 +3,7 @@ My Notes from the YDKJS collection by Kyle Simpson
 
 [Up And Going](UpAndGoing.md)
 
-[Scope And Closures](Scope And Closure.md)
+[Scope And Closures](ScopeAndClosure.md)
 
 [This Object And Prototypes](ThisObjectAndPrototypes.md)
 
