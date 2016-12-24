@@ -170,7 +170,7 @@ var foo = function bar() {
 
 This snippet is more accurately interpreted (with hoisting) as:
 ```JavaScript
-var foo; 
+var foo;
 foo(); // TypeError
 bar(); // ReferenceError
 foo = function() {
@@ -180,113 +180,83 @@ foo = function() {
 ```
 
 `Closure` is when a function is able to remember and access its lexical scope even when that function is executing outside its lexical scope
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 49-49 | Added on Thursday, November 24, 2016 7:46:17 AM
 
-function foo() { var a = 2; function bar() { console.log( a ); } return bar; } var baz = foo(); baz(); // 2 -- Whoa, closure was just observed, man. The function bar() has lexical scope access to the inner scope of foo(). But then, we take bar(), the function itself, and pass it as a value. In this case, we return the function object itself that bar refer‐ ences
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 49-49 | Added on Thursday, November 24, 2016 7:47:02 AM
+Let’s jump into some code to illustrate that definition.
 
+```JavaScript
+function foo() {
+  var a = 2;
+  function bar() {
+    console.log( a ); // 2
+  }
+  bar();
+}
+foo();
+
+```
+
+This code should look familiar from our discussions of nested scope. Function bar() has access to the variable a in the outer enclosing scope because of lexical scope look-up rules (in this case, it’s an RHS reference look-up). Is this closure?
+
+Well, technically…perhaps. But by our what-you-need-to-know definition above…not exactly. I think the most accurate way to explain bar() referencing a is via lexical scope look-up rules, and those rules are only (an important!) part of what closure is. From a purely academic perspective, what is said of the above snippet is that the function bar() has a closure over the scope of foo() (and indeed, even over the rest of the scopes it has access to, such as the global scope in our case). Put slightly differently, it’s said that bar() closes over the scope of foo(). Why? Because bar() appears nested inside of foo(). Plain and simple. But, closure defined in this way is not directly observable, nor do we see closure exercised in that snippet. We clearly see lexical scope, but closure remains sort of a mysterious shifting shadow behind the code. Let us then consider code that brings closure into full light:
+
+```JavaScript
+function foo() {
+  var a = 2;
+
+  function bar() {
+    console.log( a );
+  }
+
+  return bar;
+}
+
+var baz = foo();
+baz(); // 2 -- Whoa, closure was just observed, man.
+
+```
+The function bar() has lexical scope access to the inner scope of foo(). But then, we take bar(), the function itself, and pass it as a value. In this case, we return the function object itself that bar references.
 After we execute foo(), we assign the value it returned (our inner bar() function) to a variable called baz, and then we actually invoke baz(), which of course is invoking our inner function bar(), just by a different identifier reference
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 49-49 | Added on Thursday, November 24, 2016 7:47:15 AM
 
 bar() is executed, for sure. But in this case, it’s executed outside of its declared lexical scope
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 49-49 | Added on Thursday, November 24, 2016 7:47:29 AM
 
-After foo() executed, normally we would expect that the entirety of the inner scope of foo() would go away, because we know that the
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 50-50 | Added on Thursday, November 24, 2016 7:48:12 AM
+After foo() executed, normally we would expect that the entirety of the inner scope of foo() would go away, because we know that the engine employs a garbage collector that comes along and frees up memory once it’s no longer in use. Since it would appear that the con‐ tents of foo() are no longer in use, it would seem natural that they should be considered gone. But the “magic” of closures does not let this happen. That inner scope is in fact still in use, and thus does not go away. Who’s using it? The function bar() itself. By virtue of where it was declared, bar() has a lexical scope closure over that inner scope of foo(), which keeps that scope alive for bar() to reference at any later time. bar() still has a reference to that scope, and that reference is called closure
 
-engine employs a garbage collector that comes along and frees up memory once it’s no longer in use. Since it would appear that the con‐ tents of foo() are no longer in use, it would seem natural that they should be considered gone. But the “magic” of closures does not let this happen. That inner scope is in fact still in use, and thus does not go away. Who’s using it? The function bar() itself. By virtue of where it was declared, bar() has a lexical scope closure over that inner scope of foo(), which keeps that scope alive for bar() to reference at any later time. bar() still has a reference to that scope, and that reference is called closure
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 50-50 | Added on Thursday, November 24, 2016 7:49:08 AM
+So, a few microseconds later, when the variable baz is invoked (invoking the inner function we initially labeled bar), it duly has access to author-time lexical scope, so it can access the variable a just as we’d expect. The function is being invoked well outside of its author-time lexical scope. Closure lets the function continue to access the lexical scope it was defined in at author time. Of course, any of the various ways that functions can be passed around as values, and indeed invoked in other locations, are all examples of observing/exercising closure.
 
-So, a few microseconds later, when the variable baz is invoked (in‐ voking the inner function we initially labeled bar), it duly has access to author-time lexical scope, so it can access the variable a just as we’d expect. The function is being invoked well outside of its author-time lexical scope. Closure lets the function continue to access the lexical scope it was defined in at author time. Of course, any of the various ways that functions can be passed around as values, and indeed invoked in other locations, are all ex‐ amples of observing/exercising closure.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 51-51 | Added on Thursday, November 24, 2016 7:51:13 AM
-
-Whatever facility we use to transport an inner function outside of its lexical scope, it will maintain a scope reference to where it was origi‐ nally declared, and wherever we execute him, that closure will be ex‐ ercised
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 52-52 | Added on Thursday, November 24, 2016 7:55:38 AM
+Whatever facility we use to transport an inner function outside of its lexical scope, it will maintain a scope reference to where it was originally declared, and wherever we execute him, that closure will be exercised
 
 Be that timers, event handlers, Ajax requests, crosswindow messaging, web workers, or any of the other asynchronous (or synchronous!) tasks, when you pass in a callback function, get ready to sling some closure around
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 55-55 | Added on Thursday, November 24, 2016 10:07:07 PM
 
 Look carefully at our analysis of the previous solution. We used an IIFE to create new scope per-iteration. In other words, we actually needed a per-iteration block scope.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 55-55 | Added on Thursday, November 24, 2016 10:07:55 PM
 
-Chapter 3 showed us the let
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 56-56 | Added on Thursday, November 24, 2016 10:08:35 PM
+Chapter 3 showed us the let declaration, which hijacks a block and declares a variable right there in the block. It essentially turns a block into a scope that we can close over. So, the following awesome code just works:
 
-declaration, which hijacks a block and declares a variable right there in the block. It essentially turns a block into a scope that we can close over. So, the following awesome code just works: for (var i=1; i<=5; i++) { let j = i; // yay, block-scope for closure! setTimeout( function timer(){ console.log( j ); }, j*
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 56-56 | Added on Thursday, November 24, 2016 10:09:46 PM
+```JavaScript
+for (var i=1; i<=5; i++) {
+  let j = i; // yay, block-scope for closure!
+  setTimeout( function timer(){
+    console.log( j );
+  }, j*1000)
+}
+```
 
 How cool is that? Block scoping and closure working hand-in-hand, solving all the world’s problems. I don’t know about you, but that makes me a happy JavaScripter
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 35-35 | Added on Thursday, November 24, 2016 10:17:25 PM
 
-The let keyword attaches the variable declaration to the scope of whatever block (commonly a { .. } pair) it’s contained in. In other words, let implicitly hijacks any block’s scope for its variable decla‐ ration. var foo = true; if (foo) { let bar = foo * 2; bar = something
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 35-35 | Added on Thursday, November 24, 2016 10:17:38 PM
-
-The let keyword attaches the variable declaration to the scope of whatever block (commonly a { .. } pair) it’s contained in. In other words, let implicitly hijacks any block’s scope for its variable decla‐ ration. var foo = true; if (foo) { let bar = foo * 2; bar = something( bar ); console.log( bar ); } console.log( bar ); // ReferenceError
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 48-48 | Added on Friday, November 25, 2016 7:32:09 AM
-
-Let’s jump into some code to illustrate that definition. function foo() { var a = 2; function bar() { console.log( a ); // 2 } bar();
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 48-48 | Added on Friday, November 25, 2016 7:32:18 AM
-
-} foo(); This code should look familiar from our discussions of nested scope. Function bar() has access to the variable a in the outer enclosing scope because of lexical scope look-up rules (in this case, it’s an RHS refer‐ ence look-up). Is this closure?
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 49-49 | Added on Friday, November 25, 2016 7:32:32 AM
-
-Well, technically…perhaps. But by our what-you-need-to-know defi‐ nition above…not exactly. I think the most accurate way to explain bar() referencing a is via lexical scope look-up rules, and those rules are only (an important!) part of what closure is. From a purely academic perspective, what is said of the above snippet is that the function bar() has a closure over the scope of foo() (and indeed, even over the rest of the scopes it has access to, such as the global scope in our case). Put slightly differently, it’s said that bar() closes over the scope of foo(). Why? Because bar() appears nested inside of foo(). Plain and simple. But, closure defined in this way is not directly observable, nor do we see closure exercised in that snippet. We clearly see lexical scope, but closure remains sort of a mysterious shifting shadow behind the code. Let us then consider code that brings closure into full light: function foo() { var a = 2; function bar() { console.log( a ); } return bar; } var baz = foo(); baz(); // 2 -- Whoa, closure was just observed, man. The function bar() has lexical scope access to the inner scope of foo(). But then, we take bar(), the function itself, and pass it as a value. In this case, we return the function object itself that bar refer‐ ences. After we execute foo(), we assign the value it returned (our inner bar() function) to a variable called baz, and then we actually invoke baz(), which of course is invoking our inner function bar(), just by a different identifier reference. bar() is executed, for sure. But in this case, it’s executed outside of its declared lexical scope. After foo() executed, normally we would expect that the entirety of the inner scope of foo() would go away, because we know that the Nitty Gritty | 49
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 52-52 | Added on Friday, November 25, 2016 7:50:09 AM
-
-essentially whenever and wherever you treat func‐ tions (that access their own respective lexical scopes) as first-class val‐ ues and pass them around, you are likely to see those functions exer‐ cising closure.
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 56-56 | Added on Friday, November 25, 2016 7:54:11 AM
-
-declaration, which hijacks a block and declares a variable right there in the block. It essentially turns a block into a scope that we can close over. So, the following awesome code just works: for (var i=1; i<=5; i++) { let j = i; // yay, block-scope for closure! setTimeout( function timer(){ console.log( j ); }, j*1000 )
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 63-63 | Added on Friday, November 25, 2016 8:08:21 AM
+The let keyword attaches the variable declaration to the scope of whatever block (commonly a { .. } pair) it’s contained in. In other words, let implicitly hijacks any block’s scope for its variable declaration.
+```JavaScript
+var foo = true;
+if (foo) {
+  let bar = foo * 2;
+  bar = something( bar );
+  console.log( bar );
+}
+console.log( bar ); // ReferenceError
+```
 
 Closures can trip us up, for instance with loops, if we’re not careful to recognize them and how they work. But they are also an immensely powerful tool, enabling patterns like modules in their various forms
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 64-64 | Added on Friday, November 25, 2016 8:08:29 AM
 
-Modules require two key characteristics: 1) an outer wrapping func‐ tion being invoked, to create the enclosing scope 2) the return value of the wrapping function must include reference to at least one inner function that then has closure over the private inner scope of the wrapper
-==========
-You Don't Know JS - Scope _ Closures  
-- Your Highlight on page 77-77 | Added on Friday, November 25, 2016 10:42:40 PM
+Modules require two key characteristics:
+1) an outer wrapping function being invoked, to create the enclosing scope
+2) the return value of the wrapping function must include reference to at least one inner function that then has closure over the private inner scope of the wrapper
 
 The short explanation is that arrow functions do not behave at all like normal functions when it comes to their this binding. They discard all the normal rules for this binding, and instead take on the this value of their immediate lexical enclosing scope, whatever it is
