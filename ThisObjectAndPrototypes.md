@@ -452,281 +452,222 @@ Object.getOwnPropertyDescriptor( myObject, "a" );
 ```
 As you can see, the property descriptor (called a “data descriptor” since it’s only for holding a data value) for our normal object property a is much more than just its value of 2. It includes three other characteristics: writable, enumerable, and configurable.
 delete is only used to remove object properties
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 49-49 | Added on Tuesday, November 29, 2016 7:43:01 AM
 
-If an object property is the last remaining reference to some object/function, and you de lete it, that removes the reference and now that unreferenced object/ function can be garbage-collected
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 50-50 | Added on Tuesday, November 29, 2016 7:44:59 AM
+If an object property is the last remaining reference to some object/function, and you delete it, that removes the reference and now that unreferenced object/function can be garbage-collected
 
 By combining writable:false and configurable:false, you can essentially create a constant (cannot be changed, redefined, or deleted) as an object property
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 51-51 | Added on Tuesday, November 29, 2016 7:45:47 AM
 
 If you want to prevent an object from having new properties added to it, but otherwise leave the rest of the object’s properties alone, call Object.preventExtensions
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 51-51 | Added on Tuesday, November 29, 2016 7:45:59 AM
 
 Object.seal(..) creates a “sealed” object, which means it takes an existing object and essentially calls Object.preventExtensions(..) on it, but also marks all its existing properties as configurable:false
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 51-51 | Added on Tuesday, November 29, 2016 7:46:09 AM
 
 Object.freeze(..) creates a frozen object, which means it takes an existing object and essentially calls Object.seal(..) on it, but it also marks all “data accessor” properties as writable:false, so that their values cannot be changed. This approach is the highest level of immutability
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 52-52 | Added on Tuesday, November 29, 2016 7:46:47 AM
+```JavaScript
+var myObject = {
+  a: 2
+};
 
-var myObject = { a: 2 }; myObject.a; // 2 The myObject.a is a property access, but it doesn’t just look in myOb ject for a property of the name a, as it might seem. According to the spec, the previous code actually performs a [[Get]] operation (kinda like a function call: [[Get]]()) on the myObject
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 52-52 | Added on Tuesday, November 29, 2016 7:47:35 AM
+myObject.a; // 2
+```
+The myObject.a is a property access, but it doesn’t just look in myObject for a property of the name a, as it might seem. According to the spec, the previous code actually performs a [[Get]] operation (kinda like a function call: [[Get]]()) on the myObject
 
-But one important result of this [[Get]] operation is that if it cannot through any means come up with a value for the requested property, it instead returns the value undefined: var myObject = { a: 2 }; myObject.b; // undefined
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 56-56 | Added on Tuesday, November 29, 2016 7:51:19 AM
+But one important result of this [[Get]] operation is that if it cannot through any means come up with a value for the requested property, it instead returns the value undefined:
+```JavaScript
+var myObject = {
+  a: 2
+};
 
-var myObject = { a: 2 }; ("a" in myObject); // true ("b" in myObject); // false myObject.hasOwnProperty( "a" ); // true myObject.hasOwnProperty( "b" ); // false
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 58-58 | Added on Tuesday, November 29, 2016 8:01:26 AM
+myObject.b; // undefined
 
-for..in loops applied to arrays can give somewhat unexpec‐ ted results, in that the enumeration of an array will include not only all the numeric indices, but also any enumerable proper‐ ties. It’s a good idea to use for..in loops only on objects, and traditional for loops with numeric index iteration for arrays
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 59-59 | Added on Tuesday, November 29, 2016 8:02:50 AM
+var myObject = {
+  a: 2
+};
+
+("a" in myObject); // true
+("b" in myObject); // false
+myObject.hasOwnProperty( "a" ); // true
+myObject.hasOwnProperty( "b" ); // false
+```
+
+for..in loops applied to arrays can give somewhat unexpected results, in that the enumeration of an array will include not only all the numeric indices, but also any enumerable proper‐ ties. It’s a good idea to use for..in loops only on objects, and traditional for loops with numeric index iteration for arrays
 
 The for..in loop iterates over the list of enumerable properties on an object (including its [[Prototype]] chain
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 59-59 | Added on Tuesday, November 29, 2016 8:02:59 AM
 
 With numerically indexed arrays, iterating over the values is typically done with a standard for loop
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 59-59 | Added on Tuesday, November 29, 2016 8:03:13 AM
 
 forEach(..) will iterate over all values in the array, and it ignores any callback return values. every(..) keeps going until the end or the callback returns a false (or “falsy”) value, whereas some(..) keeps going until the end or the callback returns a true (or “truthy”) value
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 60-60 | Added on Tuesday, November 29, 2016 8:04:34 AM
 
-ES6 adds a for..of loop syntax for iterating over arrays (and objects, if the object defines its own custom iterator): var myArray = [ 1, 2, 3 ]; for (var v of myArray) {
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 60-60 | Added on Tuesday, November 29, 2016 8:05:19 AM
+ES6 adds a for..of loop syntax for iterating over arrays (and objects, if the object defines its own custom iterator):
+```JavaScript
+var myArray = [ 1, 2, 3 ];
+for (var v of myArray) {
+  console.log( v );
+} // 1 // 2 // 3
 
-console.log( v ); } // 1 // 2 // 3 The for..of loop asks for an iterator object (from a default internal function known as @@iterator in spec-speak) of the thing to be iter‐ ated, and the loop then iterates over the successive return values from calling that iterator object’s next() method, once for each loop iteration
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 65-65 | Added on Wednesday, November 30, 2016 7:47:06 AM
+```
+The for..of loop asks for an iterator object (from a default internal function known as @@iterator in spec-speak) of the thing to be iter‐ ated, and the loop then iterates over the successive return values from calling that iterator object’s next() method, once for each loop iteration
+
 
 Class/inheritance describes a certain form of code organization and architecture—a way of modeling real world problem domains in our software
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 65-65 | Added on Wednesday, November 30, 2016 7:47:42 AM
 
 OO or class-oriented programming stresses that data intrinsically has associated behavior (of course, different depending on the type and nature of the data!) that operates on it, so proper design is to package up (aka encapsulate) the data and the behavior together. This is some‐ times called data structures in formal computer
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 66-66 | Added on Wednesday, November 30, 2016 7:49:18 AM
 
 Another key concept with classes is polymorphism, which describes the idea that a general behavior from a parent class can be overridden in a child class to give it more specifics. In fact, relative polymorphism lets us reference the base behavior from the overridden behavior
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 67-67 | Added on Wednesday, November 30, 2016 7:50:42 AM
 
-Depending on your level of formal education in programming, you may have heard of procedural programming as a way of describing code that only consists of procedures (aka functions) calling other func‐ tions, without any higher abstractions. You may have been taught that classes were the proper way to transform procedural-style “spaghetti code” into well-formed, well-organized code.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 68-68 | Added on Wednesday, November 30, 2016 7:51:58 AM
+Depending on your level of formal education in programming, you may have heard of procedural programming as a way of describing code that only consists of procedures (aka functions) calling other functions, without any higher abstractions. You may have been taught that classes were the proper way to transform procedural-style “spaghetti code” into well-formed, well-organized code.
 
 While we may have a syntax that looks like classes, it’s as if JavaScript mechanics are fighting against you using the class design pattern
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 75-75 | Added on Wednesday, November 30, 2016 8:02:46 AM
 
 Don’t let polymorphism confuse you into thinking a child class is linked to its parent class. A child class instead gets a copy of what it needs from the parent class. Class inheritance implies copies
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 76-76 | Added on Wednesday, November 30, 2016 8:04:23 AM
 
 JavaScript is simpler: it does not provide a native mechanism for “multiple inheritance.” Many see this is a good thing, because the complexity savings more than make up for the “reduced” functionality. But this doesn’t stop developers from trying to fake it in various ways, as we’ll see next
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 76-76 | Added on Wednesday, November 30, 2016 8:05:13 AM
 
-JavaScript’s object mechanism does not automatically perform copy behavior when you inherit or instantiate. Plainly, there are no “classes” in JavaScript to instantiate, only objects. And objects don’t get copied to other objects, they get linked together (more on that in Chapter 5). Since observed class behaviors in other languages imply copies, let’s examine how JS developers fake the missing copy behavior of classes
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 77-77 | Added on Wednesday, November 30, 2016 8:05:20 AM
+JavaScript’s object mechanism does not automatically perform copy behavior when you inherit or instantiate. Plainly, there are no “classes” in JavaScript to instantiate, only objects. And objects don’t get copied to other objects, they get linked together (more on that in Chapter 5). Since observed class behaviors in other languages imply copies, let’s examine how JS developers fake the missing copy behavior of classes in JavaScript: mixins.
 
-in JavaScript: mixins.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 85-85 | Added on Wednesday, November 30, 2016 9:39:25 PM
-
-Objects in JavaScript have an internal property, denoted in the speci‐ fication as [[Prototype]], which is simply a reference to another ob‐ ject
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 86-86 | Added on Wednesday, November 30, 2016 9:41:27 PM
-
-var anotherObject = { a: 2 }; // create an object linked to `anotherObject` var myObject = Object.create( anotherObject ); myObject.a; // 2
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 86-86 | Added on Wednesday, November 30, 2016 9:41:42 PM
+Objects in JavaScript have an internal property, denoted in the specification as [[Prototype]], which is simply a reference to another object
+```JavaScript
+var anotherObject = {
+  a: 2
+};
+// create an object linked to `anotherObject`
+var myObject = Object.create( anotherObject );
+myObject.a; // 2
+```
 
 So, we have myObject that is now [[Prototype]] linked to another Object. Clearly myObject.a doesn’t actually exist, but nevertheless, the property access succeeds
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 87-87 | Added on Wednesday, November 30, 2016 9:44:09 PM
 
 The top end of every normal [[Prototype]] chain is the built-in Object.prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 88-88 | Added on Wednesday, November 30, 2016 9:46:08 PM
 
-If the property name foo ends up both on myObject itself and at a higher level of the [[Prototype]] chain that starts at myObject, this is called shadowing. The foo property directly on myObject shadows any foo property that appears higher in the chain, because the myOb ject.foo lookup would always find the foo property that’s lowest in the chain
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 89-89 | Added on Wednesday, November 30, 2016 9:48:28 PM
+If the property name foo ends up both on myObject itself and at a higher level of the [[Prototype]] chain that starts at myObject, this is called shadowing. The foo property directly on myObject shadows any foo property that appears higher in the chain, because the myObject.foo lookup would always find the foo property that’s lowest in the chain
 
-Shadowing methods leads to ugly explicit pseudopolymorphism
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 89-89 | Added on Wednesday, November 30, 2016 9:48:50 PM
-
-so you should try to avoid it if possible
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 91-91 | Added on Wednesday, November 30, 2016 9:50:08 PM
+Shadowing methods leads to ugly explicit pseudopolymorphism so you should try to avoid it if possible
 
 In JavaScript, classes can’t (being that they don’t exist!) describe what an object can do. The object defines its own behavior directly. There’s just the object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 91-91 | Added on Wednesday, November 30, 2016 9:52:09 PM
 
-function Foo() { // ... } var a = new Foo(); Object.getPrototypeOf( a ) === Foo.prototype; // true
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:52:17 PM
+```JavaScript
+function Foo() {
+  // ...
+}
 
-When a is created by calling new Foo(), one of the things that happens (see Chapter 2 for all four steps) is that a gets an internal [[Proto type]] link to the object that Foo.prototype is pointing at.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:54:00 PM
+var a = new Foo();
+Object.getPrototypeOf( a ) === Foo.prototype; // true
+```
+
+When a is created by calling new Foo(), one of the things that happens (see Chapter 2 for all four steps) is that a gets an internal [[Prototype]] link to the object that Foo.prototype is pointing at.
 
 new Foo() results in a new object (we called it a), and that new object a is internally [[Prototype]]-linked to the Foo.prototype object.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:54:27 PM
 
 We end up with two objects, linked to each other. That’s it. We didn’t instantiate a class. We certainly didn’t do any copying of behavior from a “class” into a concrete object. We just caused two objects to be linked to each other
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:55:21 PM
 
-In class-oriented languages, multiple copies (aka instances) of a class can be made, like stamping something out from a mold. As we saw in Chapter 4, this happens because the process of instantiating (or in‐ heriting from) a class means, “copy the behavior plan from that class into a physical object,” and this is done again for each new instance. But in JavaScript, there are no such copy actions performed. You don’t create multiple instances of a class. You can create multiple objects that are [[Prototype]]-linked to a common object. But by default, no copying occurs, and thus these objects don’t end up totally
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:55:28 PM
+In class-oriented languages, multiple copies (aka instances) of a class can be made, like stamping something out from a mold. As we saw in Chapter 4, this happens because the process of instantiating (or inheriting from) a class means, “copy the behavior plan from that class into a physical object,” and this is done again for each new instance. But in JavaScript, there are no such copy actions performed. You don’t create multiple instances of a class. You can create multiple objects that are [[Prototype]]-linked to a common object. But by default, no copying occurs, and thus these objects don’t end up totally
 
-In class-oriented languages, multiple copies (aka instances) of a class can be made, like stamping something out from a mold. As we saw in Chapter 4, this happens because the process of instantiating (or in‐ heriting from) a class means, “copy the behavior plan from that class into a physical object,” and this is done again for each new instance. But in JavaScript, there are no such copy actions performed. You don’t create multiple instances of a class. You can create multiple objects that are [[Prototype]]-linked to a common object. But by default, no copying occurs, and thus these objects don’t end up totally separate and disconnected from each other, but rather, quite linked
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:55:52 PM
+In class-oriented languages, multiple copies (aka instances) of a class can be made, like stamping something out from a mold. As we saw in Chapter 4, this happens because the process of instantiating (or inheriting from) a class means, “copy the behavior plan from that class into a physical object,” and this is done again for each new instance. But in JavaScript, there are no such copy actions performed. You don’t create multiple instances of a class. You can create multiple objects that are [[Prototype]]-linked to a common object. But by default, no copying occurs, and thus these objects don’t end up totally separate and disconnected from each other, but rather, quite linked
 
 new Foo() is an indirect, roundabout way to end up with what we want: a new object linked to another object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:56:02 PM
 
-Can we get what we want in a more direct way? Yes! The hero is Object.create(..
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 92-92 | Added on Wednesday, November 30, 2016 9:56:29 PM
+Can we get what we want in a more direct way? Yes! The hero is Object.create(..)
 
 In JavaScript, we don’t make copies from one object (“class”) to another (“instance”). We make links between objects. For the [[Prototype]] mechanism, visually, the arrows move from right to left, and from bottom to top:
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 93-93 | Added on Wednesday, November 30, 2016 9:57:12 PM
 
-This mechanism is often called prototypal inheritance (we’ll explore the code in detail shortly), which is commonly said to be the dynamiclanguage version of classical inheritance
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 94-94 | Added on Wednesday, November 30, 2016 9:58:58 PM
+This mechanism is often called prototypal inheritance (we’ll explore the code in detail shortly), which is commonly said to be the dynamic language version of classical inheritance
 
-Inheritance implies a copy operation, and JavaScript doesn’t copy ob‐ ject properties (natively, by default). Instead, JS creates a link between two objects, where one object can essentially delegate property/func‐ tion access to another object. Delegation (see Chapter 6) is a much more accurate term for JavaScript’s object-linking mechanism.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 97-97 | Added on Thursday, December 1, 2016 7:42:58 AM
+Inheritance implies a copy operation, and JavaScript doesn’t copy object properties (natively, by default). Instead, JS creates a link between two objects, where one object can essentially delegate property/function access to another object. Delegation (see Chapter 6) is a much more accurate term for JavaScript’s object-linking mechanism.
 
-function Foo(name) { this.name = name; } Foo.prototype.myName = function() { return this.name; }; var a = new Foo( "a" );
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 97-97 | Added on Thursday, December 1, 2016 7:43:07 AM
+```JavaScript
+function Foo(name) {
+  this.name = name;
+}
 
-var b = new Foo( "b" ); a.myName(); // "a" b.myName(); // "b" This snippet shows two additional “class orientation” tricks in play: 1. this.name = name adds the .name property onto each object (a and b, respectively; see Chapter 2 about this binding), similar to how class instances encapsulate data values. 2. Foo.prototype.myName = ... is perhaps the more interesting technique; this adds a property (function) to the Foo.prototype object. Now, a.myName() works, but perhaps surprisingly. How
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 97-97 | Added on Thursday, December 1, 2016 7:44:46 AM
+Foo.prototype.myName = function() {
+  return this.name;
+};
 
-So, by virtue of how they are created, a and b each end up with an internal [[Prototype]] linkage to Foo.prototype. When myName is not found on a or b, respectively, it’s instead found (through delega‐ tion; see Chapter 6) on Foo.prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 98-98 | Added on Thursday, December 1, 2016 7:46:42 AM
+var a = new Foo( "a" );
+var b = new Foo( "b" );
+a.myName(); // "a"
+b.myName(); // "b"
+```
 
-function Foo() { /* .. */ } Foo.prototype = { /* .. */ }; // create a new prototype object var a1 = new Foo(); a1.constructor === Foo; // false! a1.constructor === Object; // true! Object(..) didn’t “construct” a1, did it? It sure seems like Foo() “constructed” it. Most developers think of Foo(
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 98-98 | Added on Thursday, December 1, 2016 7:47:11 AM
+This snippet shows two additional “class orientation” tricks in play:
+1. this.name = name adds the .name property onto each object (a and b, respectively; see Chapter 2 about this binding), similar to how class instances encapsulate data values.
 
-function Foo() { /* .. */ } Foo.prototype = { /* .. */ }; // create a new prototype object var a1 = new Foo(); a1.constructor === Foo; // false! a1.constructor === Object; // true! Object(..) didn’t “construct” a1, did it? It sure seems like Foo() “constructed” it. Most developers think of Foo() as doing the construction, but where everything falls apart is when you think “con‐ structor” means “was constructed by,” because by that reasoning, a1.constructor should be Foo, but it isn’t
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 98-98 | Added on Thursday, December 1, 2016 7:47:31 AM
+2. Foo.prototype.myName = ... is perhaps the more interesting technique; this adds a property (function) to the Foo.prototype object. Now, a.myName() works, but perhaps surprisingly.
 
-What’s happening? a1 has no .constructor property, so it delegates up the [[Prototype]] chain to Foo.prototype. But that object doesn’t have a .constructor either (like the default Foo.prototype object would have had!), so it keeps delegating, this time up to Object.pro totype, the top of the delegation chain. That object indeed has
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 99-99 | Added on Thursday, December 1, 2016 7:47:38 AM
+So, by virtue of how they are created, a and b each end up with an internal [[Prototype]] linkage to Foo.prototype. When myName is not found on a or b, respectively, it’s instead found (through delegation; see Chapter 6) on Foo.prototype
 
-a .constructor on it, which points to the built-in Object(..) function.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 99-99 | Added on Thursday, December 1, 2016 7:48:20 AM
+```JavaScript
+function Foo() {
+  /* .. */
+}
 
-function Foo() { /* .. */ } Foo.prototype = { /* .. */ }; // create a new prototype object // Need to properly "fix" the missing `.constructor` // property on the new object serving as `Foo.prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 99-99 | Added on Thursday, December 1, 2016 7:48:30 AM
+Foo.prototype = { /* .. */ };
+// create a new prototype object
+var a1 = new Foo();
+a1.constructor === Foo; // false!
+a1.constructor === Object; // true!
+```
 
-// See Chapter 3 for `defineProperty(..)`. Object.defineProperty( Foo.prototype, "constructor" , { enumerable: false, writable: true, configurable: true, value: Foo // point `.constructor` at `Foo` } ); That’s a lot of manual work to fix .constructor. Moreover, all we’re really doing is perpetuating the misconception that “constructor” means “was constructed by.” That’s an expensive illusion
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 100-100 | Added on Thursday, December 1, 2016 7:49:39 AM
+Object(..) didn’t “construct” a1, did it? It sure seems like Foo() “constructed” it. Most developers think of Foo() as doing the construction, but where everything falls apart is when you think “con‐ structor” means “was constructed by,” because by that reasoning, a1.constructor should be Foo, but it isn’t.
+
+What’s happening? a1 has no .constructor property, so it delegates up the [[Prototype]] chain to Foo.prototype. But that object doesn’t have a .constructor either (like the default Foo.prototype object would have had!), so it keeps delegating, this time up to Object.prototype, the top of the delegation chain. That object indeed has a .constructor on it, which points to the built-in Object(..) function.
+
+```JavaScript
+function Foo() {
+  /* .. */
+}
+
+Foo.prototype = {
+  /* .. */
+};
+
+// create a new prototype object
+// Need to properly "fix" the missing `.constructor`
+// property on the new object serving as `Foo.prototype
+// See Chapter 3 for `defineProperty(..)`.
+
+Object.defineProperty( Foo.prototype, "constructor" , {
+  enumerable: false,
+  writable: true,
+  configurable: true,
+  value: Foo // point `.constructor` at `Foo`
+});
+```
+That’s a lot of manual work to fix .constructor. Moreover, all we’re really doing is perpetuating the misconception that “constructor” means “was constructed by.” That’s an expensive illusion
 
 a1.constructor is extremely unreliable, and it’s an unsafe reference to rely upon in your code. Generally, such references should be avoided where possible
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 101-101 | Added on Thursday, December 1, 2016 7:51:06 AM
 
-And, here’s the typical “prototype-style” code that creates such links: function Foo(name) { this.name = name; } Foo.prototype.myName = function() { return this.name; }; function Bar(name,label) { Foo.call( this, name ); this.label = label; } // here, we make a new `Bar.prototype` // linked to `Foo.prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 101-101 | Added on Thursday, December 1, 2016 7:52:09 AM
+And, here’s the typical “prototype-style” code that creates such links:
+```JavaScript
+function Foo(name) {
+  this.name = name;
+}
 
-Bar.prototype = Object.create( Foo.prototype ); // Beware! Now `Bar.prototype.constructor` is gone, // and might need to be manually "fixed" if you're // in the habit of relying on such properties! Bar.prototype.myLabel = function() { return this.label; }; var a = new Bar( "a", "obj a" ); a.myName(); // "a" a.myLabel(); // "obj
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 101-101 | Added on Thursday, December 1, 2016 7:54:08 AM
+Foo.prototype.myName = function() {
+  return this.name;
+};
 
-The important part is Bar.prototype = Object.create( Foo.pro totype ). The call to Object.create(..) creates a “new” object out of thin air, and links that new object’s internal [[Prototype]] to the object you specify (Foo.prototype in this case). In other words, that line says: “make a new Bar dot prototype object that’s linked to Foo dot prototype
+function Bar(name,label) {
+  Foo.call( this, name );
+  this.label = label;
+}
+// here, we make a new `Bar.prototype`
+// linked to `Foo.prototype
+
+Bar.prototype = Object.create( Foo.prototype );
+// Beware! Now `Bar.prototype.constructor` is gone,
+// and might need to be manually "fixed" if you're
+// in the habit of relying on such properties!
+
+Bar.prototype.myLabel = function() {
+  return this.label;
+};
+
+var a = new Bar( "a", "obj a" );
+a.myName(); // "a"
+a.myLabel(); // "obj
+```
+
+The important part is `Bar.prototype = Object.create( Foo.prototype )`. The call to Object.create(..) creates a “new” object out of thin air, and links that new object’s internal [[Prototype]] to the object you specify (Foo.prototype in this case). In other words, that line says: “make a new Bar dot prototype object that’s linked to Foo dot prototype
 ==========
 You Don't Know JS - This _ Object Prototypes
 - Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:54:54 AM
