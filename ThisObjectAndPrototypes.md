@@ -668,61 +668,55 @@ a.myLabel(); // "obj
 ```
 
 The important part is `Bar.prototype = Object.create( Foo.prototype )`. The call to Object.create(..) creates a “new” object out of thin air, and links that new object’s internal [[Prototype]] to the object you specify (Foo.prototype in this case). In other words, that line says: “make a new Bar dot prototype object that’s linked to Foo dot prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:54:54 AM
 
-// doesn't work like you want! Bar.prototype = Foo.prototype; // works kinda like you want, but with // side effects you probably don't want :( Bar.prototype = new Foo();
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:55:10 AM
+```JavaScript
+// doesn't work like you want!
+Bar.prototype = Foo.prototype;
 
-Bar.prototype = Foo.prototype doesn’t create a new object for Bar.prototype to be linked to. It just makes Bar.prototype another reference to Foo.prototype, which effectively links Bar directly
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:55:17 AM
+// works kinda like you want, but with
+// side effects you probably don't want :(
+Bar.prototype = new Foo();
+```
 
-Bar.prototype = Foo.prototype doesn’t create a new object for Bar.prototype to be linked to. It just makes Bar.prototype another reference to Foo.prototype, which effectively links Bar directly to the same object to which Foo links: Foo.prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:56:01 AM
+`Bar.prototype = Foo.prototype` doesn’t create a new object for Bar.prototype to be linked to. It just makes Bar.prototype another reference to Foo.prototype, which effectively links Bar directly to the same object to which Foo links: Foo.prototype. This means when you start assigning, like `Bar.prototype.myLabel = ...`, you’re modifying not a separate object but the shared Foo.prototype object itself, which would affect any objects linked to Foo.prototype. This is almost certainly not what you want. If it is what you want, then you likely don’t need Bar at all, and should just use only Foo and make your code simpler
 
-Bar.prototype = Foo.prototype doesn’t create a new object for Bar.prototype to be linked to. It just makes Bar.prototype another reference to Foo.prototype, which effectively links Bar directly to the same object to which Foo links: Foo.prototype. This means when you start assigning, like Bar.prototype.myLabel = ..., you’re modifying not a separate object but the shared Foo.prototype object itself, which would affect any objects linked to Foo.prototype. This is almost cer‐ tainly not what you want. If it is what you want, then you likely don’t need Bar at all, and should just use only Foo and make your code simpler
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:56:35 AM
-
-Bar.prototype = new Foo() does in fact create a new object that is duly linked to Foo.prototype as we’d want. But, it used the Foo(..) “constructor call” to do it. If that function has any side effects (such as logging, changing state, registering against other objects, adding data properties to this, etc.), those side effects happen at the time of this linking (and likely against the wrong object!), rather than only when the eventual Bar() “descendents” are created, as would likely be expected
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:56:55 AM
+`Bar.prototype = new Foo()` does in fact create a new object that is duly linked to Foo.prototype as we’d want. But, it used the Foo(..) “constructor call” to do it. If that function has any side effects (such as logging, changing state, registering against other objects, adding data properties to this, etc.), those side effects happen at the time of this linking (and likely against the wrong object!), rather than only when the eventual Bar() “descendents” are created, as would likely be expected
 
 So, we’re left with using Object.create(..) to make a new object that’s properly linked, but without having the side effects of calling Foo(..). The slight downside is that we have to create a new object, throwing the old one away, instead of modifying the existing default object we’re provided
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 102-102 | Added on Thursday, December 1, 2016 7:57:17 AM
 
-It would be nice if there was a standard and reliable way to modify the linkage of an existing object. Prior to ES6, there’s a nonstandard and not fully cross-browser way, via the .__proto__ property, which is settable. ES6 adds a Object.setPrototypeOf(..) helper utility, which does the trick in a standard and predictable
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 103-103 | Added on Thursday, December 1, 2016 7:57:43 AM
+It would be nice if there was a standard and reliable way to modify the linkage of an existing object. Prior to ES6, there’s a nonstandard and not fully cross-browser way, via the `.__proto__` property, which is settable. ES6 adds a `Object.setPrototypeOf(..)` helper utility, which does the trick in a standard and predictable
 
-/ pre-ES6 // throws away default existing `Bar.prototype` Bar.prototype = Object.create( Foo.prototype ); // ES6+ // modifies existing `Bar.prototype` Object.setPrototypeOf( Bar.prototype, Foo.prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 104-104 | Added on Friday, December 2, 2016 7:36:07 AM
+```JavaScript
+// pre-ES6
+// throws away default existing `Bar.prototype`
+Bar.prototype = Object.create( Foo.prototype );
 
-/ helper utility to see if `o1` is // related to (delegates to) `o2` function isRelatedTo(o1, o2) { function F(){} F.prototype = o2; return o1 instanceof F; } var a = {}; var b = Object.create( a ); isRelatedTo( b, a ); // true
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 104-104 | Added on Friday, December 2, 2016 7:37:40 AM
+// ES6+
+// modifies existing `Bar.prototype`
+Object.setPrototypeOf( Bar.prototype, Foo.prototype );
+```
 
-we borrow a throwaway function F, reassign its .prototype to arbitrarily point to some object o2, and then ask if o1 is an “instance of” F. Obviously
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 104-104 | Added on Friday, December 2, 2016 7:38:37 AM
+```JavaScript
+// helper utility to see if `o1` is
+// related to (delegates to) `o2`
+function isRelatedTo(o1, o2) {
+  function F(){}
+  F.prototype = o2;
+  return o1 instanceof F;
+}
 
-The second, and much cleaner, approach to [[Prototype]] reflection is: Foo.prototype.isPrototypeOf( a ); // true
+var a = {};
+var b = Object.create( a );
+isRelatedTo( b, a ); // true
+```
+
+we borrow a throwaway function F, reassign its .prototype to arbitrarily point to some object o2, and then ask if o1 is an “instance of” F.
+
+The second, and much cleaner, approach to [[Prototype]] reflection is:
+```JavaScript
+Foo.prototype.isPrototypeOf( a ); // true
+```
+
 ==========
 You Don't Know JS - This _ Object Prototypes
 - Your Highlight on page 104-104 | Added on Friday, December 2, 2016 7:39:00 AM
