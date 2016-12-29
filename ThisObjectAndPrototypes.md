@@ -717,136 +717,122 @@ The second, and much cleaner, approach to [[Prototype]] reflection is:
 Foo.prototype.isPrototypeOf( a ); // true
 ```
 
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 104-104 | Added on Friday, December 2, 2016 7:39:00 AM
-
-Notice that in this case, we don’t really care (or even need) Foo, we just need an object (in our case, arbitrarily labeled Foo.prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 104-104 | Added on Friday, December 2, 2016 7:39:19 AM
-
-Notice that in this case, we don’t really care (or even need) Foo, we just need an object (in our case, arbitrarily labeled Foo.prototype) to test
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 105-105 | Added on Friday, December 2, 2016 7:39:26 AM
-
-against another object. The question isPrototypeOf(..) answers is: in the entire [[Prototype]] chain of a, does Foo.prototype ever appear?
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 105-105 | Added on Friday, December 2, 2016 7:40:20 AM
+Notice that in this case, we don’t really care (or even need) Foo, we just need an object (in our case, arbitrarily labeled Foo.prototype) to test against another object. The question isPrototypeOf(..) answers is: in the entire [[Prototype]] chain of a, does Foo.prototype ever appear?
 
 our isRelatedTo(..) utility is built in to the language, and it’s called isPrototypeOf
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 105-105 | Added on Friday, December 2, 2016 7:40:54 AM
 
-Most browsers (not all!) have also long supported a nonstandard al‐ ternate way of accessing the internal [[Prototype]]: a.__proto__ === Foo.prototype; // true
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 105-105 | Added on Friday, December 2, 2016 7:41:20 AM
+Most browsers (not all!) have also long supported a nonstandard alternate way of accessing the internal
+```JavaScript
+ [[Prototype]]: a.__proto__ === Foo.prototype; // true
+```
 
-The strange .__proto__ (not standardized until ES6!) property “mag‐ ically” retrieves the internal [[Prototype]] of an object as a reference, which is quite helpful if you want to directly inspect (or even tra‐ verse: .__proto__.__proto__...) the chain.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 106-106 | Added on Friday, December 2, 2016 7:42:38 AM
+The strange `.__proto__` (not standardized until ES6!) property “magically” retrieves the internal [[Prototype]] of an object as a reference, which is quite helpful if you want to directly inspect (or even traverse: `.__proto__.__proto__...`) the chain.
 
-we could envision .__proto__ implemented (see Chapter 3 for object property definitions) like this: Object.defineProperty( Object.prototype, "__proto__", { get: function() { return Object.getPrototypeOf( this ); }, set: function(o) { // setPrototypeOf(..) as of ES6 Object.setPrototypeOf( this, o ); return o; } } );
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 107-107 | Added on Friday, December 2, 2016 7:46:39 AM
+we could envision .__proto__ implemented (see Chapter 3 for object property definitions) like this:
+```JavaScript
+Object.defineProperty( Object.prototype, "__proto__", {
+  get: function() {
+    return Object.getPrototypeOf( this );
+  },
+  set: function(o) {
+    // setPrototypeOf(..) as of ES6
+    Object.setPrototypeOf( this, o );
+    return o;
+  }
+});
+```
 
-What’s the point of the [[Prototype]] mechanism? Why is it so com‐ mon for JS developers to go to so much effort (emulating classes) in their code to wire up these linkages? Remember we said much earlier in this chapter that Object.cre ate(..) would be a hero? Now, we’re ready to see how: var foo = { something: function() { console.log( "Tell me something
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 107-107 | Added on Friday, December 2, 2016 7:47:03 AM
+What’s the point of the [[Prototype]] mechanism? Why is it so common for JS developers to go to so much effort (emulating classes) in their code to wire up these linkages? Remember we said much earlier in this chapter that Object.cre ate(..) would be a hero? Now, we’re ready to see how:
+```JavaScript
+var foo = {
+  something: function() {
+    console.log( "Tell me something good..." );
+  }
+};
 
-What’s the point of the [[Prototype]] mechanism? Why is it so com‐ mon for JS developers to go to so much effort (emulating classes) in their code to wire up these linkages? Remember we said much earlier in this chapter that Object.cre ate(..) would be a hero? Now, we’re ready to see how: var foo = { something: function() { console.log( "Tell me something good..." ); } }; var bar = Object.create( foo ); bar.something(); // Tell me something good... Object.create(..) creates a new object (bar) linked to the object we specified (foo), which gives us all the power (delegation) of the [[Pro totype]] mechanism, but without any of the unnecessary complica‐ tion of new functions acting as classes and constructor calls
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 108-108 | Added on Friday, December 2, 2016 7:48:18 AM
+var bar = Object.create( foo );
+bar.something(); // Tell me something good...
+```
+Object.create(..) creates a new object (bar) linked to the object we specified (foo), which gives us all the power (delegation) of the [[Pro totype]] mechanism, but without any of the unnecessary complication of new functions acting as classes and constructor calls
 
-Object.create(null) creates an object that has an empty (aka null) [[Prototype]] linkage, and thus the object can’t dele‐ gate anywhere. Since such an object has no prototype chain, the instanceof operator (explained earlier) has nothing to check, so it will always return false. These special empty- [[Prototype]] objects are often called “dictionaries,” as they are typically used purely for storing data in properties, most‐ ly because they have no possible surprise effects from any delegated properties/functions on the [[Prototype]] chain, and are thus purely flat data storage
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 108-108 | Added on Friday, December 2, 2016 7:49:42 AM
+Object.create(null) creates an object that has an empty (aka null) [[Prototype]] linkage, and thus the object can’t delegate anywhere. Since such an object has no prototype chain, the `instanceof` operator (explained earlier) has nothing to check, so it will always return false. These special empty-[[Prototype]] objects are often called “dictionaries,” as they are typically used purely for storing data in properties, mostly because they have no possible surprise effects from any delegated properties/functions on the [[Prototype]] chain, and are thus purely flat data storage
 
-if (!Object.create) { Object.create = function(o) { function F(){} F.prototype = o; return new F(); }; } This polyfill works by using a throwaway F function, and
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 108-108 | Added on Friday, December 2, 2016 7:49:57 AM
+```JavaScript
+if (!Object.create) {
+  Object.create = function(o) {
+    function F(){}
+    F.prototype = o;
+    return new F();
+  };
+}
+```
 
-if (!Object.create) { Object.create = function(o) { function F(){} F.prototype = o; return new F(); }; } This polyfill works by using a throwaway F function, and we override its .prototype property to point to the object we want to link to. Then we use new F() construction to make a new object that will be linked as we specified
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 110-110 | Added on Friday, December 2, 2016 7:51:29 AM
+This polyfill works by using a throwaway F function, and we override its .prototype property to point to the object we want to link to. Then we use new F() construction to make a new object that will be linked as we specified
 
-It may be tempting to think that these links between objects primari‐ ly provide a sort of fallback for “missing” properties or methods. While that may be an observed outcome, I don’t think it represents the right way of thinking about [[Prototype
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 111-111 | Added on Friday, December 2, 2016 7:52:44 AM
+It may be tempting to think that these links between objects primarily provide a sort of fallback for “missing” properties or methods. While that may be an observed outcome, I don’t think it represents the right way of thinking about [[Prototype]]
 
 Don’t miss an important but nuanced point here. Designing software where you intend for a developer to, for instance, call myObject.cool() and have that work even though there is no cool() method on myObject, introduces some “magic” into your API design that can be surprising for future developers who maintain your software
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 111-111 | Added on Friday, December 2, 2016 7:53:13 AM
 
-You can however design your API with less “magic” to it, but still take
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 111-111 | Added on Friday, December 2, 2016 7:53:38 AM
+You can however design your API with less “magic” to it, but still take advantage of the power of [[Prototype]] linkage:
+```JavaScript
+var anotherObject = {
+  cool: function() {
+    console.log( "cool!" );
+  }
+};
 
-advantage of the power of [[Prototype]] linkage: var anotherObject = { cool: function() { console.log( "cool!" ); } }; var myObject = Object.create( anotherObject ); myObject.doCool = function() { this.cool(); // internal delegation! }; myObject.doCool(); // "cool!" Here, we call myObject.doCool(), which is a method that actually exists on myObject, making our API design more explicit (less “mag‐ ical”). Internally, our implementation follows the delegation design pattern (see Chapter 6), taking advantage of [[Prototype]] delega‐ tion to anotherObject.cool
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 111-111 | Added on Friday, December 2, 2016 7:54:11 AM
+var myObject = Object.create( anotherObject );
+myObject.doCool = function() {
+  this.cool(); // internal delegation!
+};
+
+myObject.doCool(); // "cool!"
+```
+
+Here, we call myObject.doCool(), which is a method that actually exists on myObject, making our API design more explicit (less “magical”). Internally, our implementation follows the delegation design pattern (see Chapter 6), taking advantage of [[Prototype]] delegation to anotherObject.cool
 
 In other words, delegation will tend to be less surprising/confusing if it’s an internal implementation detail rather than plainly exposed in your API interface design. We will expound on delegation in great detail in the next chapter
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 113-113 | Added on Friday, December 2, 2016 10:26:32 PM
 
-As a brief review of our conclusions from Chapter 5, the [[Proto type]] mechanism is an internal link that exists on one object that references another object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 114-114 | Added on Friday, December 2, 2016 10:27:21 PM
+As a brief review of our conclusions from Chapter 5, the [[Prototype]] mechanism is an internal link that exists on one object that references another object
 
 In other words, the actual mechanism, the essence of what’s important to the functionality we can leverage in JavaScript, is all about objects being linked to other objects.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 115-115 | Added on Saturday, December 3, 2016 12:29:45 PM
 
-Importantly, the class design pattern encourages you to employ meth‐ od overriding (and polymorphism) to get the most out of inheritance, where you override the definition of some general Task method in your XYZ task
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 115-115 | Added on Saturday, December 3, 2016 12:30:53 PM
+Importantly, the class design pattern encourages you to employ method overriding (and polymorphism) to get the most out of inheritance, where you override the definition of some general Task method in your XYZ task
 
 But now let’s try to think about the same problem domain, using behavior delegation instead of classes
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 115-115 | Added on Saturday, December 3, 2016 12:31:18 PM
 
-You will first define an object (not a class, nor a function as most JSers would lead you to believe) called Task, and it will have concrete be‐ havior on it that includes utility methods that various tasks can use
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 116-116 | Added on Saturday, December 3, 2016 12:32:08 PM
-
-read: delegate to!). Then, for each task (“XYZ,” “ABC”), you define an object to hold that task-specific data/behavior. You link your taskspecific object(s) to the Task utility object, allowing them to delegate to it when they need to
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 116-116 | Added on Saturday, December 3, 2016 12:32:33 PM
+You will first define an object (not a class, nor a function as most JSers would lead you to believe) called Task, and it will have concrete behavior on it that includes utility methods that various tasks can use read: delegate to!). Then, for each task (“XYZ,” “ABC”), you define an object to hold that task-specific data/behavior. You link your taskspecific object(s) to the Task utility object, allowing them to delegate to it when they need to
 
 Basically, think about needing behaviors from two sibling/peer objects (XYZ and Task) to perform task “XYZ.” But rather than needing to compose them together, via class copies, we can keep them in their separate objects, and we can allow the XYZ object to delegate to Task when needed
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 116-116 | Added on Saturday, December 3, 2016 12:34:19 PM
 
-Here’s some simple code to suggest how you accomplish that: Task = { setID: function(ID) { this.id = ID; }, outputID: function() { console.log( this.id );
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 116-116 | Added on Saturday, December 3, 2016 12:34:30 PM
+Here’s some simple code to suggest how you accomplish that:
+```JavaScript
+Task = {
+  setID: function(ID) {
+    this.id = ID;
+  },
+  outputID: function() {
+    console.log( this.id );
+  };
+}
 
-}; // make `XYZ` delegate to `Task` XYZ = Object.create( Task ); XYZ.prepareTask = function(ID,Label) { this.setID( ID ); this.label = Label; }; XYZ.outputTaskDetails = function() { this.outputID(); console.log( this.label ); }; // ABC = Object.create( Task ); // ABC ... = ... In this code, Task and XYZ are not classes (or functions), they’re just objects. XYZ is set up via Object.create(..) to [[Prototype]]- delegate to the Task object
+// make `XYZ` delegate to `Task`
+XYZ = Object.create( Task );
+XYZ.prepareTask = function(ID,Label) {
+  this.setID( ID );
+  this.label = Label;
+};
+
+XYZ.outputTaskDetails = function() {
+  this.outputID();
+  console.log( this.label );
+};
+
+// ABC = Object.create( Task );
+// ABC ... = ...
+```
+
+In this code, Task and XYZ are not classes (or functions), they’re just objects. XYZ is set up via Object.create(..) to [[Prototype]]- delegate to the Task object
 ==========
 You Don't Know JS - This _ Object Prototypes
 - Your Highlight on page 116-116 | Added on Saturday, December 3, 2016 12:34:57 PM
