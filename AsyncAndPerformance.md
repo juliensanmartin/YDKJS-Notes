@@ -1,0 +1,2026 @@
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 185-186 | Added on Thursday, December 8, 2016 7:31:47 AM
+
+The JS engine doesn't run in isolation. It runs inside a hosting environment, which is for most developers the typical web browser.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 188-190 | Added on Thursday, December 8, 2016 7:32:38 AM
+
+But the one common "thread" (that's a not-so-subtle asynchronous joke, for what it's worth) of all these environments is that they have a mechanism in them that handles executing multiple chunks of your program over time, at each moment invoking the JS engine, called the "event loop."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 190-192 | Added on Thursday, December 8, 2016 7:33:12 AM
+
+In other words, the JS engine has had no innate sense of time, but has instead been an on-demand execution environment for any arbitrary snippet of JS. It's the surrounding environment that has always scheduled "events" (JS code executions).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 192-193 | Added on Thursday, December 8, 2016 7:33:35 AM
+
+So, for example, when your JS program makes an Ajax request to fetch some data from a server, you set up the "response" code in a function (commonly called a "callback"), and the JS engine tells the
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 193-195 | Added on Thursday, December 8, 2016 7:33:42 AM
+
+hosting environment, "Hey, I'm going to suspend execution for now, but whenever you finish with that network request, and you have some data, please call this function back."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 209-210 | Added on Thursday, December 8, 2016 7:35:42 AM
+
+As you can see, there's a continuously running loop represented by the while loop, and each iteration of this loop is called a "tick."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 210-213 | Added on Thursday, December 8, 2016 7:35:49 AM
+
+For each tick, if an event is waiting on the queue, it's taken off and executed. These events are your function callbacks. It's important to note that setTimeout(..) doesn't put your callback on the event loop queue. What it does is set up a timer; when the timer expires, the environment places your callback into the event loop, such that some future tick will pick it up and execute it.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 223-225 | Added on Thursday, December 8, 2016 7:38:38 AM
+
+It's very common to conflate the terms "async" and "parallel," but they are actually quite different. Remember, async is about the gap between now and later. But parallel is about things being able to occur simultaneously.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 225-227 | Added on Thursday, December 8, 2016 7:39:09 AM
+
+The most common tools for parallel computing are processes and threads. Processes and threads execute independently and may execute simultaneously: on separate processors, or even separate computers, but multiple threads can share the memory of a single process.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 227-229 | Added on Thursday, December 8, 2016 7:39:38 AM
+
+An event loop, by contrast, breaks its work into tasks and executes them in serial, disallowing parallel access and changes to shared memory. Parallelism and "serialism" can coexist in the form of cooperating event loops in separate threads.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 277-279 | Added on Thursday, December 8, 2016 7:48:33 AM
+
+Because of JavaScript's single-threading, the code inside of foo() (and bar()) is atomic, which means that once foo() starts running, the entirety of its code will finish before any of the code in bar() can run, or vice versa. This is called "run-to-completion" behavior.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 289-291 | Added on Thursday, December 8, 2016 7:50:21 AM
+
+Because foo() can't be interrupted by bar(), and bar() can't be interrupted by foo(), this program only has two possible outcomes depending on which starts running
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 292-294 | Added on Thursday, December 8, 2016 7:50:28 AM
+
+Chunk 1 is synchronous (happens now), but chunks 2 and 3 are asynchronous (happen later), which means their execution will be separated by a gap of time.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 314-314 | Added on Thursday, December 8, 2016 7:50:38 AM
+
+Two outcomes from the same code means we still have nondeterminism!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 315-316 | Added on Thursday, December 8, 2016 7:51:14 AM
+
+In other words, it's more deterministic than threads would have been.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 314-315 | Added on Thursday, December 8, 2016 7:51:34 AM
+
+But it's at the function (event) ordering level, rather than at the statement ordering level
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 316-317 | Added on Thursday, December 8, 2016 7:51:46 AM
+
+As applied to JavaScript's behavior, this function-ordering nondeterminism is the common term "race condition,"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 330-333 | Added on Friday, December 9, 2016 7:33:42 AM
+
+Concurrency is when two or more "processes" are executing simultaneously over the same period, regardless of whether their individual constituent operations happen in parallel (at the same instant on separate processors or cores) or not. You can think of concurrency then as "process"-level (or task-level) parallelism, as opposed to operation-level parallelism (separate-processor threads).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 359-359 | Added on Friday, December 9, 2016 7:59:11 AM
+
+If they don't interact, nondeterminism is perfectly acceptable.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 370-371 | Added on Friday, December 9, 2016 8:00:37 AM
+
+More commonly, concurrent "processes" will by necessity interact, indirectly through scope and/or the DOM.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 371-372 | Added on Friday, December 9, 2016 8:00:47 AM
+
+When such interaction will occur, you need to coordinate these interactions to prevent "race conditions," as described earlier.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 372-379 | Added on Friday, December 9, 2016 8:01:20 AM
+
+Here's a simple example of two concurrent "processes" that interact because of implied ordering, which is only sometimes broken: var res = [];function response(data) {    res.push( data );}// ajax(..) is some arbitrary Ajax function given by a libraryajax( "http://some.url.1", response );ajax( "http://some.url.2", response ); The concurrent "processes" are the two response() calls that will be made to handle the Ajax responses. They can happen in either-first order.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 400-403 | Added on Friday, December 9, 2016 8:04:20 AM
+
+The same reasoning from this scenario would apply if multiple concurrent function calls were interacting with each other through the shared DOM, like one updating the contents of a <div> and the other updating the style or attributes of the <div> (e.g., to make the DOM element visible once it has content). You probably wouldn't want to show the DOM element before it had content, so the coordination must ensure proper ordering interaction.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 463-465 | Added on Monday, December 12, 2016 7:33:15 AM
+
+Another expression of concurrency coordination is called "cooperative concurrency." Here, the focus isn't so much on interacting via value sharing in scopes
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 465-466 | Added on Monday, December 12, 2016 7:33:36 AM
+
+The goal is to take a long-running "process" and break it up into steps or batches so that other concurrent "processes" have a chance to interleave their operations into the event loop queue.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 468-477 | Added on Monday, December 12, 2016 7:36:16 AM
+
+var res = [];// `response(..)` receives array of results from the Ajax callfunction response(data) {    // add onto existing `res` array    res = res.concat(        // make a new transformed array with all `data` values doubled        data.map( function(val){            return val * 2;        } )    );}// ajax(..) is some arbitrary Ajax function given by a libraryajax( "http://some.url.1", response );ajax( "http://some.url.2", response );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 478-479 | Added on Monday, December 12, 2016 7:36:43 AM
+
+If "http://some.url.1" gets its results back first, the entire list will be mapped into res all at once.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 480-482 | Added on Monday, December 12, 2016 7:36:55 AM
+
+While such a "process" is running, nothing else in the page can happen, including no other response(..) calls, no UI updates, not even user events like scrolling, typing, button clicking, and the like. That's pretty painful.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 482-484 | Added on Monday, December 12, 2016 7:37:10 AM
+
+So, to make a more cooperatively concurrent system, one that's friendlier and doesn't hog the event loop queue, you can process these results in asynchronous batches, after each one "yielding" back to the event loop to let other waiting events happen.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 484-501 | Added on Monday, December 12, 2016 7:37:32 AM
+
+var res = [];// `response(..)` receives array of results from the Ajax callfunction response(data) {    // let's just do 1000 at a time    var chunk = data.splice( 0, 1000 );    // add onto existing `res` array    res = res.concat(        // make a new transformed array with all `chunk` values doubled        chunk.map( function(val){            return val * 2;        } )    );    // anything left to process?    if (data.length > 0) {        // async schedule next batch        setTimeout( function(){            response( data );        }, 0 );    }}// ajax(..) is some arbitrary Ajax function given by a libraryajax( "http://some.url.1", response );ajax( "http://some.url.2", response );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 501-502 | Added on Monday, December 12, 2016 7:37:41 AM
+
+We process the data set in maximum-sized chunks of 1,000 items.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 502-503 | Added on Monday, December 12, 2016 7:39:43 AM
+
+By doing so, we ensure a short-running "process," even if that means many more subsequent "processes," as the interleaving onto the event loop queue will give us a much more responsive (performant) site/app.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 503-505 | Added on Monday, December 12, 2016 7:39:59 AM
+
+Of course, we're not interaction-coordinating the ordering of any of these "processes," so the order of results in res won't be predictable. If ordering was required, you'd need to use interaction techniques like those we discussed earlier, or ones we will cover in later chapters of this book.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 506-507 | Added on Monday, December 12, 2016 7:40:08 AM
+
+We use the setTimeout(..0) (hack) for async scheduling, which basically just means "stick this function at the end of the current event loop queue."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 516-520 | Added on Monday, December 12, 2016 7:42:23 AM
+
+So, the best way to think about this that I've found is that the "Job queue" is a queue hanging off the end of every tick in the event loop queue. Certain async-implied actions that may occur during a tick of the event loop will not cause a whole new event to be added to the event loop queue, but will instead add an item (aka Job) to the end of the current tick's Job queue. It's kinda like saying, "oh, here's this other thing I need to do later, but make sure it happens right away before anything else can happen."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 520-522 | Added on Monday, December 12, 2016 7:42:43 AM
+
+Or, to use a metaphor: the event loop queue is like an amusement park ride, where once you finish the ride, you have to go to the back of the line to ride again. But the Job queue is like finishing the ride, but then cutting in line and getting right back on.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 522-525 | Added on Monday, December 12, 2016 7:43:08 AM
+
+A Job can also cause more Jobs to be added to the end of the same queue. So, it's theoretically possible that a Job "loop" (a Job that keeps adding another Job, etc.) could spin indefinitely, thus starving the program of the ability to move on to the next event loop tick. This would conceptually be almost the same as just expressing a long-running or infinite loop (like while (true) ..) in your code.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 525-526 | Added on Monday, December 12, 2016 7:43:22 AM
+
+Jobs are kind of like the spirit of the setTimeout(..0) hack, but implemented in such a way as to have a much more well-defined and guaranteed ordering: later, but as soon as possible.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 617-618 | Added on Monday, December 12, 2016 9:39:22 PM
+
+the callback is the most fundamental async pattern in the language.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 696-697 | Added on Monday, December 12, 2016 9:49:53 PM
+
+The reason it's difficult for us as developers to write async evented code, especially when all we have is the callback to do it, is that stream of consciousness thinking/planning is unnatural for most of us.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 698-698 | Added on Monday, December 12, 2016 9:50:09 PM
+
+We think in step-by-step terms, but the tools (callbacks) available
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 698-699 | Added on Monday, December 12, 2016 9:50:20 PM
+
+to us in code are not expressed in a step-by-step fashion once we move from synchronous to asynchronous.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 699-700 | Added on Monday, December 12, 2016 9:50:39 PM
+
+And that is why it's so hard to accurately author and reason about async JS code with callbacks: because it's not how our brain planning works.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 790-790 | Added on Tuesday, December 13, 2016 7:39:21 AM
+
+That is what "callback hell" is all about! The nesting/indentation are basically a side show, a red herring.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 793-795 | Added on Tuesday, December 13, 2016 7:39:57 AM
+
+Are you catching the notion here that our sequential, blocking brain planning behaviors just don't map well onto callback-oriented async code? That's the first major deficiency to articulate about callbacks: they express asynchrony in code in ways our brains have to fight just to keep in sync with (pun intended!).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 807-809 | Added on Tuesday, December 13, 2016 7:41:35 AM
+
+We call this "inversion of control," when you take part of your program and give over control of its execution to another third party. There's an unspoken "contract" that exists between your code and the third-party utility -- a set of things you expect to be maintained.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 876-889 | Added on Tuesday, December 13, 2016 7:51:18 AM
+
+Or perhaps still safe but friendlier: function addNumbers(x,y) {    // ensure numerical input    x = Number( x );    y = Number( y );    // + will safely do numeric addition    return x + y;}addNumbers( 21, 21 );    // 42addNumbers( 21, "21" );    // 42 However you go about it, these sorts of checks/normalizations are fairly common on function inputs, even with code we theoretically entirely trust. In a crude sort of way, it's like the programming equivalent of the geopolitical principle of "Trust But Verify." So, doesn't it stand to reason that we should do the same thing about composition of async function callbacks, not just with truly external code but even with code we know is generally "under our own control"? Of course we should. But callbacks don't really offer anything to assist us. We have to construct all that machinery ourselves, and it often ends up being a lot of boilerplate/overhead that we repeat for every single async callback.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 889-893 | Added on Tuesday, December 13, 2016 7:51:43 AM
+
+The most troublesome problem with callbacks is inversion of control leading to a complete breakdown along all those trust lines. If you have code that uses callbacks, especially but not exclusively with third-party utilities, and you're not already applying some sort of mitigation logic for all these inversion of control trust issues, your code has bugs in it right now even though they may not have bitten you yet. Latent bugs are still bugs. Hell indeed.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 956-957 | Added on Tuesday, December 13, 2016 7:56:53 AM
+
+You can see just how quickly the unpredictability of Zalgo can threaten any JS program. So the silly-sounding "never release Zalgo" is actually incredibly common and solid advice. Always be asyncing.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 947-950 | Added on Tuesday, December 13, 2016 7:57:02 AM
+
+Note: For more information on Zalgo, see Oren Golan's "Don't Release Zalgo!" (https://github.com/oren/oren.github.io/blob/master/posts/zalgo.md) and Isaac Z. Schlueter's "Designing APIs for Asynchrony" (http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 950-956 | Added on Tuesday, December 13, 2016 7:57:12 AM
+
+Consider: function result(data) {    console.log( a );}var a = 0;ajax( "..pre-cached-url..", result );a++; Will this code print 0 (sync callback invocation) or 1 (async callback invocation)? Depends... on the conditions.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 957-987 | Added on Tuesday, December 13, 2016 7:57:47 AM
+
+What if you don't know whether the API in question will always execute async? You could invent a utility like this asyncify(..) proof-of-concept: function asyncify(fn) {    var orig_fn = fn,        intv = setTimeout( function(){            intv = null;            if (fn) fn();        }, 0 )    ;    fn = null;    return function() {        // firing too quickly, before `intv` timer has fired to        // indicate async turn has passed?        if (intv) {            fn = orig_fn.bind.apply(                orig_fn,                // add the wrapper's `this` to the `bind(..)`                // call parameters, as well as currying any                // passed in parameters                [this].concat( [].slice.call( arguments ) )            );        }        // already async        else {            // invoke original function            orig_fn.apply( this, arguments );        }    };} You use asyncify(..) like this: function result(data) {    console.log( a );}var a = 0;ajax( "..pre-cached-url..", asyncify( result ) );a++; Whether the Ajax request is in the cache and resolves to try to call the callback right away, or must be fetched over the wire and thus complete later asynchronously, this code will always output 1 instead of 0 -- result(..) cannot help but be invoked asynchronously, which means the a++ has a chance to run before result(..) does.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 987-988 | Added on Tuesday, December 13, 2016 7:58:34 AM
+
+Yay, another trust issued "solved"! But it's inefficient, and yet again more bloated boilerplate to weigh your project down.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 988-990 | Added on Tuesday, December 13, 2016 7:58:48 AM
+
+That's just the story, over and over again, with callbacks. They can do pretty much anything you want, but you have to be willing to work hard to get it, and oftentimes this effort is much more than you can or should spend on such code reasoning.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1000-1002 | Added on Tuesday, December 13, 2016 7:59:24 AM
+
+We need a generalized solution to all of the trust issues, one that can be reused for as many callbacks as we create without all the extra boilerplate overhead.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1005-1007 | Added on Wednesday, December 14, 2016 7:32:55 AM
+
+we identified two major categories of deficiencies with using callbacks to express program asynchrony and manage concurrency: lack of sequentiality and lack of trustability.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1008-1008 | Added on Wednesday, December 14, 2016 7:33:29 AM
+
+inversion of control,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1009-1010 | Added on Wednesday, December 14, 2016 7:33:37 AM
+
+Recall that we wrap up the continuation of our program in a callback function, and hand that callback over to another party (potentially even external code) and just cross our fingers that it will do the right thing with the invocation of the callback.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1011-1013 | Added on Wednesday, December 14, 2016 7:34:00 AM
+
+But what if we could uninvert that inversion of control? What if instead of handing the continuation of our program to another party, we could expect it to return us a capability to know when its task finishes, and then our code could decide what to do next?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1013-1014 | Added on Wednesday, December 14, 2016 7:34:39 AM
+
+This paradigm is called Promises.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1024-1040 | Added on Wednesday, December 14, 2016 7:39:28 AM
+
+Future Value Imagine this scenario: I walk up to the counter at a fast-food restaurant, and place an order for a cheeseburger. I hand the cashier $1.47. By placing my order and paying for it, I've made a request for a value back (the cheeseburger). I've started a transaction. But often, the chesseburger is not immediately available for me. The cashier hands me something in place of my cheeseburger: a receipt with an order number on it. This order number is an IOU ("I owe you") promise that ensures that eventually, I should receive my cheeseburger. So I hold onto my receipt and order number. I know it represents my future cheeseburger, so I don't need to worry about it anymore -- aside from being hungry! While I wait, I can do other things, like send a text message to a friend that says, "Hey, can you come join me for lunch? I'm going to eat a cheeseburger." I am reasoning about my future cheeseburger already, even though I don't have it in my hands yet. My brain is able to do this because it's treating the order number as a placeholder for the cheeseburger. The placeholder essentially makes the value time independent. It's a future value. Eventually, I hear, "Order 113!" and I gleefully walk back up to the counter with receipt in hand. I hand my receipt to the cashier, and I take my cheeseburger in return. In other words, once my future value was ready, I exchanged my value-promise for the value itself. But there's another possible outcome. They call my order number, but when I go to retrieve my cheeseburger, the cashier regretfully informs me, "I'm sorry, but we appear to be all out of cheeseburgers." Setting aside the customer frustration of this scenario for a moment, we can see an important characteristic of future values: they can either indicate a success or failure. Every time I order a cheeseburger, I know that I'll either get a cheeseburger eventually, or I'll get the sad news of the cheeseburger shortage, and I'll have to figure out something else to eat for lunch.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1042-1057 | Added on Wednesday, December 14, 2016 7:45:52 AM
+
+Values Now and Later This all might sound too mentally abstract to apply to your code. So let's be more concrete. However, before we can introduce how Promises work in this fashion, we're going to derive in code that we already understand -- callbacks! -- how to handle these future values. When you write code to reason about a value, such as performing math on a number, whether you realize it or not, you've been assuming something very fundamental about that value, which is that it's a concrete now value already: var x, y = 2;console.log( x + y ); // NaN  <-- because `x` isn't set yet The x + y operation assumes both x and y are already set. In terms we'll expound on shortly, we assume the x and y values are already resolved. It would be nonsense to expect that the + operator by itself would somehow be magically capable of detecting and waiting around until both x and y are resolved (aka ready), only then to do the operation. That would cause chaos in the program if different statements finished now and others finished later, right? How could you possibly reason about the relationships between two statements if either one (or both) of them might not be finished yet? If statement 2 relies on statement 1 being finished, there are just two outcomes: either statement 1 finished right now and everything proceeds fine, or statement 1 didn't finish yet, and thus statement 2 is going to fail.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1057-1084 | Added on Wednesday, December 14, 2016 7:46:07 AM
+
+If this sort of thing sounds familiar from Chapter 1, good! Let's go back to our x + y math operation. Imagine if there was a way to say, "Add x and y, but if either of them isn't ready yet, just wait until they are. Add them as soon as you can." Your brain might have just jumped to callbacks. OK, so... function add(getX,getY,cb) {    var x, y;    getX( function(xVal){        x = xVal;        // both are ready?        if (y != undefined) {            cb( x + y );    // send along sum        }    } );    getY( function(yVal){        y = yVal;        // both are ready?        if (x != undefined) {            cb( x + y );    // send along sum        }    } );}// `fetchX()` and `fetchY()` are sync or async// functionsadd( fetchX, fetchY, function(sum){    console.log( sum ); // that was easy, huh?} ); Take just a moment to let the beauty (or lack thereof) of that snippet sink in (whistles patiently). While the ugliness is undeniable, there's something very important to notice about this async pattern. In that snippet, we treated x and y as future values, and we express an operation add(..) that (from the outside) does not care whether x or y or both are available right away or not. In other words, it normalizes the now and later, such that we can rely on a predictable outcome of the add(..) operation. By using an add(..) that is temporally consistent -- it behaves the same across now and later times -- the async code is much easier to reason about. To put it more plainly: to consistently handle both now and later, we make both of them later: all operations become async. Of course, this rough callbacks-based approach leaves much to be desired. It's just a first tiny step toward realizing the benefits of reasoning about future values without worrying about the time aspect of when it's available or not.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1131-1137 | Added on Wednesday, December 14, 2016 7:52:48 AM
+
+Moreover, once a Promise is resolved, it stays that way forever -- it becomes an immutable value at that point -- and can then be observed as many times as necessary. Note: Because a Promise is externally immutable once resolved, it's now safe to pass that value around to any party and know that it cannot be modified accidentally or maliciously. This is especially true in relation to multiple parties observing the resolution of a Promise. It is not possible for one party to affect another party's ability to observe Promise resolution. Immutability may sound like an academic topic, but it's actually one of the most fundamental and important aspects of Promise design, and shouldn't be casually passed over.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1139-1140 | Added on Wednesday, December 14, 2016 7:53:09 AM
+
+Promises are an easily repeatable mechanism for encapsulating and composing future values.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1142-1147 | Added on Wednesday, December 14, 2016 7:55:29 AM
+
+Let's imagine calling a function foo(..) to perform some task. We don't know about any of its details, nor do we care. It may complete the task right away, or it may take a while. We just simply need to know when foo(..) finishes so that we can move on to our next task. In other words, we'd like a way to be notified of foo(..)'s completion so that we can continue. In typical JavaScript fashion, if you need to listen for a notification, you'd likely think of that in terms of events. So we could reframe our need for notification as a need to listen for a completion (or continuation) event emitted by foo(..).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1153-1155 | Added on Wednesday, December 14, 2016 7:55:51 AM
+
+With callbacks, the "notification" would be our callback invoked by the task (foo(..)). But with Promises, we turn the relationship around, and expect that we can listen for an event from foo(..), and when notified, proceed accordingly.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1155-1160 | Added on Wednesday, December 14, 2016 7:56:19 AM
+
+First, consider some pseudocode: foo(x) {    // start doing something that could take a while}foo( 42 )on (foo "completion") {    // now we can do the next step!}on (foo "error") {    // oops, something went wrong in `foo(..)`}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1160-1163 | Added on Wednesday, December 14, 2016 7:56:42 AM
+
+We call foo(..) and then we set up two event listeners, one for "completion" and one for "error" -- the two possible final outcomes of the foo(..) call. In essence, foo(..) doesn't even appear to be aware that the calling code has subscribed to these events, which makes for a very nice separation of concerns.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1164-1181 | Added on Wednesday, December 14, 2016 7:59:28 AM
+
+Here's the more natural way we could express that in JS: function foo(x) {    // start doing something that could take a while    // make a `listener` event notification    // capability to return    return listener;}var evt = foo( 42 );evt.on( "completion", function(){    // now we can do the next step!} );evt.on( "failure", function(err){    // oops, something went wrong in `foo(..)`} ); foo(..) expressly creates an event subscription capability to return back, and the calling code receives and registers the two event handlers against it. The inversion from normal callback-oriented code should be obvious, and it's intentional. Instead of passing the callbacks to foo(..), it returns an event capability we call evt, which receives the callbacks. But if you recall from Chapter 2, callbacks themselves represent an inversion of control. So inverting the callback pattern is actually an inversion of inversion, or an uninversion of control -- restoring control back to the calling code where we wanted it to be in the first place. One important benefit is that multiple separate parts of the code
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1164-1189 | Added on Wednesday, December 14, 2016 7:59:40 AM
+
+Here's the more natural way we could express that in JS: function foo(x) {    // start doing something that could take a while    // make a `listener` event notification    // capability to return    return listener;}var evt = foo( 42 );evt.on( "completion", function(){    // now we can do the next step!} );evt.on( "failure", function(err){    // oops, something went wrong in `foo(..)`} ); foo(..) expressly creates an event subscription capability to return back, and the calling code receives and registers the two event handlers against it. The inversion from normal callback-oriented code should be obvious, and it's intentional. Instead of passing the callbacks to foo(..), it returns an event capability we call evt, which receives the callbacks. But if you recall from Chapter 2, callbacks themselves represent an inversion of control. So inverting the callback pattern is actually an inversion of inversion, or an uninversion of control -- restoring control back to the calling code where we wanted it to be in the first place. One important benefit is that multiple separate parts of the code can be given the event listening capability, and they can all independently be notified of when foo(..) completes to perform subsequent steps after its completion: var evt = foo( 42 );// let `bar(..)` listen to `foo(..)`'s completionbar( evt );// also, let `baz(..)` listen to `foo(..)`'s completionbaz( evt ); Uninversion of control enables a nicer separation of concerns, where bar(..) and baz(..) don't need to be involved in how foo(..) is called. Similarly, foo(..) doesn't need to know or care that bar(..) and baz(..) exist or are waiting to be notified when foo(..) completes. Essentially, this evt object is a neutral third-party negotiation between the separate concerns.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1190-1191 | Added on Wednesday, December 14, 2016 8:00:14 AM
+
+As you may have guessed by now, the evt event listening capability is an analogy for a Promise.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1191-1192 | Added on Wednesday, December 14, 2016 8:00:20 AM
+
+In a Promise-based approach, the previous snippet would have foo(..) creating and returning a Promise instance, and that promise would then be passed to bar(..) and baz(..).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1192-1196 | Added on Wednesday, December 14, 2016 8:00:48 AM
+
+Note: The Promise resolution "events" we listen for aren't strictly events (though they certainly behave like events for these purposes), and they're not typically called "completion" or "error". Instead, we use then(..) to register a "then" event. Or perhaps more precisely, then(..) registers "fulfillment" and/or "rejection" event(s), though we don't see those terms used explicitly in the code.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1196-1210 | Added on Wednesday, December 14, 2016 8:01:33 AM
+
+Consider: function foo(x) {    // start doing something that could take a while    // construct and return a promise    return new Promise( function(resolve,reject){        // eventually, call `resolve(..)` or `reject(..)`,        // which are the resolution callbacks for        // the promise.    } );}var p = foo( 42 );bar( p );baz( p ); Note: The pattern shown with new Promise( function(..){ .. } ) is generally called the "revealing constructor". The function passed in is executed immediately (not async deferred, as callbacks to then(..) are), and it's provided two parameters, which in this case we've named resolve and reject. These are the resolution functions for the promise. resolve(..) generally signals fulfillment, and reject(..) signals rejection.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1211-1220 | Added on Wednesday, December 14, 2016 8:02:27 AM
+
+function bar(fooPromise) {    // listen for `foo(..)` to complete    fooPromise.then(        function(){            // `foo(..)` has now finished, so            // do `bar(..)`'s task        },        function(){            // oops, something went wrong in `foo(..)`        }    );}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1222-1230 | Added on Wednesday, December 14, 2016 8:03:21 AM
+
+Another way to approach this is: function bar() {    // `foo(..)` has definitely finished, so    // do `bar(..)`'s task}function oopsBar() {    // oops, something went wrong in `foo(..)`,    // so `bar(..)` didn't run}// ditto for `baz()` and `oopsBaz()`var p = foo( 42 );p.then( bar, oopsBar );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1254-1256 | Added on Thursday, December 15, 2016 7:32:24 AM
+
+As such, it was decided that the way to recognize a Promise (or something that behaves like a Promise) would be to define something called a "thenable" as any object or function which has a then(..) method on it. It is assumed that any such value is a Promise-conforming thenable.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1256-1257 | Added on Thursday, December 15, 2016 7:32:44 AM
+
+The general term for "type checks" that make assumptions about a value's "type" based on its shape (what properties are present) is called "duck typing"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1257-1258 | Added on Thursday, December 15, 2016 7:32:57 AM
+
+"If it looks like a duck, and quacks like a duck, it must be a duck" (see
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1259-1266 | Added on Thursday, December 15, 2016 7:33:15 AM
+
+if (    p !== null &&    (        typeof p === "object" ||        typeof p === "function"    ) &&    typeof p.then === "function") {    // assume it's a thenable!}else {    // not a thenable}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1266-1266 | Added on Thursday, December 15, 2016 7:33:22 AM
+
+Yuck!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1302-1302 | Added on Thursday, December 15, 2016 7:38:08 AM
+
+the single most important characteristic that the Promise pattern establishes: trust.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1306-1309 | Added on Thursday, December 15, 2016 7:38:47 AM
+
+Let's start by reviewing the trust issues with callbacks-only coding. When you pass a callback to a utility foo(..), it might: Call the callback too early Call the callback too late (or never) Call the callback too few or too many times Fail to pass along any necessary environment/parameters swallow any errors/exceptions that may happen The characteristics of Promises are intentionally designed to provide useful, repeatable answers to all these concerns.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1310-1310 | Added on Thursday, December 15, 2016 7:41:23 AM
+
+Calling Too Early
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1313-1315 | Added on Thursday, December 15, 2016 7:41:36 AM
+
+when you call then(..) on a Promise, even if that Promise was already resolved, the callback you provide to then(..) will always be called asynchronously
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1316-1316 | Added on Thursday, December 15, 2016 7:42:23 AM
+
+Calling Too Late
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1317-1318 | Added on Thursday, December 15, 2016 7:42:40 AM
+
+a Promise's then(..) registered observation callbacks are automatically scheduled when either resolve(..) or reject(..) are called by the Promise creation capability.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1323-1330 | Added on Thursday, December 15, 2016 7:43:31 AM
+
+For example: p.then( function(){    p.then( function(){        console.log( "C" );    } );    console.log( "A" );} );p.then( function(){    console.log( "B" );} );// A B
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1331-1331 | Added on Thursday, December 15, 2016 7:43:42 AM
+
+Here, "C" cannot interrupt and precede "B", by virtue of how Promises are defined to operate.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1332-1335 | Added on Thursday, December 15, 2016 7:54:41 AM
+
+It's important to note, though, that there are lots of nuances of scheduling where the relative ordering between callbacks chained off two separate Promises is not reliably predictable. If two promises p1 and p2 are both already resolved, it should be true that p1.then(..); p2.then(..) would end up calling the callback(s) for p1 before the ones for p2.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1335-1335 | Added on Thursday, December 15, 2016 7:54:52 AM
+
+But
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1338-1348 | Added on Thursday, December 15, 2016 7:55:15 AM
+
+    resolve( "B" );} );var p1 = new Promise( function(resolve,reject){    resolve( p3 );} );var p2 = new Promise( function(resolve,reject){    resolve( "A" );} );p1.then( function(v){    console.log( v );} );p2.then( function(v){    console.log( v );} );// A B  <-- not  B A  as you might expect
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1349-1351 | Added on Thursday, December 15, 2016 7:55:30 AM
+
+p1 is resolved not with an immediate value, but with another promise p3 which is itself resolved with the value "B". The specified behavior is to unwrap p3 into p1, but asynchronously, so p1's callback(s) are behind p2's callback(s) in the asynchronus Job queue
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1352-1353 | Added on Thursday, December 15, 2016 7:55:43 AM
+
+a good practice is not to code in such a way where the ordering of multiple callbacks matters at all. Avoid that if you can.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1504-1506 | Added on Friday, December 16, 2016 7:39:51 AM
+
+Promises are a pattern that augments callbacks with trustable semantics, so that the behavior is more reason-able and more reliable. By uninverting the inversion of control of callbacks, we place the control with a trustable system (Promises) that was designed specifically to bring sanity to our async.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1509-1512 | Added on Friday, December 16, 2016 7:43:41 AM
+
+Every time you call then(..) on a Promise, it creates and returns a new Promise, which we can chain with. Whatever value you return from the then(..) call's fulfillment callback (the first parameter) is automatically set as the fulfillment of the chained Promise (from the first point).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1513-1521 | Added on Friday, December 16, 2016 7:44:26 AM
+
+var p = Promise.resolve( 21 );var p2 = p.then( function(v){    console.log( v );    // 21    // fulfill `p2` with value `42`    return v * 2;} );// chain off `p2`p2.then( function(v){    console.log( v );    // 42} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1522-1526 | Added on Friday, December 16, 2016 7:44:51 AM
+
+By returning v * 2 (i.e., 42), we fulfill the p2 promise that the first then(..) call created and returned. When p2's then(..) call runs, it's receiving the fulfillment from the return v * 2 statement. Of course, p2.then(..) creates yet another promise, which we could have stored in a p3 variable. But it's a little annoying to have to create an intermediate variable p2 (or p3, etc.). Thankfully, we can easily just chain these together:
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1526-1534 | Added on Friday, December 16, 2016 7:45:06 AM
+
+var p = Promise.resolve( 21 );p.then( function(v){    console.log( v );    // 21    // fulfill the chained promise with value `42`    return v * 2;} )// here's the chained promise.then( function(v){    console.log( v );    // 42} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1537-1538 | Added on Friday, December 16, 2016 7:46:40 AM
+
+What if we want step 2 to wait for step 1 to do something asynchronous? We're using an immediate return statement, which immediately fulfills the chained promise.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1538-1541 | Added on Friday, December 16, 2016 7:47:03 AM
+
+The key to making a Promise sequence truly async capable at every step is to recall how Promise.resolve(..) operates when what you pass to it is a Promise or thenable instead of a final value. Promise.resolve(..) directly returns a received genuine Promise, or it unwraps the value of a received thenable -- and keeps going recursively while it keeps unwrapping thenables.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1554-1569 | Added on Friday, December 16, 2016 7:52:22 AM
+
+If we introduce asynchrony to that wrapping promise, everything still nicely works the same: var p = Promise.resolve( 21 );p.then( function(v){    console.log( v );    // 21    // create a promise to return    return new Promise( function(resolve,reject){        // introduce asynchrony!        setTimeout( function(){            // fulfill with value `42`            resolve( v * 2 );        }, 100 );    } );} ).then( function(v){    // runs after the 100ms delay in the previous step    console.log( v );    // 42} ); That's incredibly powerful! Now we can construct a sequence of however many async steps we want, and each step can delay the next step (or not!), as necessary.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1572-1592 | Added on Friday, December 16, 2016 7:53:14 AM
+
+To further the chain illustration, let's generalize a delay-Promise creation (without resolution messages) into a utility we can reuse for multiple steps: function delay(time) {    return new Promise( function(resolve,reject){        setTimeout( resolve, time );    } );}delay( 100 ) // step 1.then( function STEP2(){    console.log( "step 2 (after 100ms)" );    return delay( 200 );} ).then( function STEP3(){    console.log( "step 3 (after another 200ms)" );} ).then( function STEP4(){    console.log( "step 4 (next Job)" );    return delay( 50 );} ).then( function STEP5(){    console.log( "step 5 (after another 50ms)" );} )... Calling delay(200) creates a promise that will fulfill in 200ms, and then we return that from the first then(..) fulfillment callback, which causes the second then(..)'s promise to wait on that 200ms promise.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1595-1605 | Added on Friday, December 16, 2016 7:54:20 AM
+
+To be honest, though, sequences of delays with no message passing isn't a terribly useful example of Promise flow control. Let's look at a scenario that's a little more practical. Instead of timers, let's consider making Ajax requests: // assume an `ajax( {url}, {callback} )` utility// Promise-aware ajaxfunction request(url) {    return new Promise( function(resolve,reject){        // the `ajax(..)` callback should be our        // promise's `resolve(..)` function        ajax( url, resolve );    } );}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1605-1606 | Added on Friday, December 16, 2016 7:55:05 AM
+
+We first define a request(..) utility that constructs a promise
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1606-1612 | Added on Friday, December 16, 2016 7:55:23 AM
+
+to represent the completion of the ajax(..) call: request( "http://some.url.1/" ).then( function(response1){    return request( "http://some.url.2/?v=" + response1 );} ).then( function(response2){    console.log( response2 );} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1671-1675 | Added on Saturday, December 17, 2016 7:57:12 AM
+
+Let's review briefly the intrinsic behaviors of Promises that enable chaining flow control: A then(..) call against one Promise automatically produces a new Promise to return from the call. Inside the fulfillment/rejection handlers, if you return a value or an exception is thrown, the new returned (chainable) Promise is resolved accordingly. If the fulfillment or rejection handler returns a Promise, it is unwrapped, so that whatever its resolution is will become the resolution of the chained Promise returned from the current then(..).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1675-1678 | Added on Saturday, December 17, 2016 7:57:39 AM
+
+While chaining flow control is helpful, it's probably most accurate to think of it as a side benefit of how Promises compose (combine) together, rather than the main intent. As we've discussed in detail several times already, Promises normalize asynchrony and encapsulate time-dependent value state, and that is what lets us chain them together in this useful way.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1682-1682 | Added on Saturday, December 17, 2016 8:10:12 AM
+
+There's some slight confusion around the terms "resolve," "fulfill," and "reject"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1754-1755 | Added on Monday, December 19, 2016 7:35:21 AM
+
+In callbacks, some standards have emerged for patterned error handling, most notably the "error-first callback" style:
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1755-1769 | Added on Monday, December 19, 2016 7:35:40 AM
+
+function foo(cb) {    setTimeout( function(){        try {            var x = baz.bar();            cb( null, x ); // success!        }        catch (err) {            cb( err );        }    }, 100 );}foo( function(err,val){    if (err) {        console.error( err ); // bummer :(    }    else {        console.log( val );    }} ); Note: The try..catch here works only from the perspective that the baz.bar() call will either succeed or fail immediately, synchronously.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1774-1782 | Added on Monday, December 19, 2016 7:38:37 AM
+
+So we come back to error handling in Promises, with the rejection handler passed to then(..). Promises don't use the popular "error-first callback" design style, but instead use "split callbacks" style; there's one callback for fulfillment and one for rejection: var p = Promise.reject( "Oops" );p.then(    function fulfilled(){        // never gets here    },    function rejected(err){        console.log( err ); // "Oops"    }
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1784-1796 | Added on Monday, December 19, 2016 7:39:33 AM
+
+Consider: var p = Promise.resolve( 42 );p.then(    function fulfilled(msg){        // numbers don't have string functions,        // so will throw an error        console.log( msg.toLowerCase() );    },    function rejected(err){        // never gets here    }); If the msg.toLowerCase() legitimately throws an error (it does!), why doesn't our error handler get notified? As we explained earlier, it's because that error handler is for the p promise, which has already been fulfilled with value 42. The p promise is immutable, so the only promise that can be notified of the error is the one returned from p.then(..), which in this case we don't capture.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1852-1869 | Added on Monday, December 19, 2016 7:46:57 AM
+
+Pit of Success The following is just theoretical, how Promises could be someday changed to behave. I believe it would be far superior to what we currently have. And I think this change would be possible even post-ES6 because I don't think it would break web compatibility with ES6 Promises. Moreover, it can be polyfilled/prollyfilled in, if you're careful. Let's take a look: Promises could default to reporting (to the developer console) any rejection, on the next Job or event loop tick, if at that exact moment no error handler has been registered for the Promise. For the cases where you want a rejected Promise to hold onto its rejected state for an indefinite amount of time before observing, you could call defer(), which suppresses automatic error reporting on that Promise. If a Promise is rejected, it defaults to noisily reporting that fact to the developer console (instead of defaulting to silence). You can opt out of that reporting either implicitly (by registering an error handler before rejection), or explicitly (with defer()). In either case, you control the false positives. Consider: var p = Promise.reject( "Oops" ).defer();// `foo(..)` is Promise-awarefoo( 42 ).then(    function fulfilled(){        return p;    },    function rejected(err){        // handle `foo(..)` error    });...
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1869-1882 | Added on Monday, December 19, 2016 7:49:40 AM
+
+When we create p, we know we're going to wait a while to use/observe its rejection, so we call defer() -- thus no global reporting. defer() simply returns the same promise, for chaining purposes. The promise returned from foo(..) gets an error handler attached right away, so it's implicitly opted out and no global reporting for it occurs either. But the promise returned from the then(..) call has no defer() or error handler attached, so if it rejects (from inside either resolution handler), then it will be reported to the developer console as an uncaught error. This design is a pit of success. By default, all errors are either handled or reported -- what almost all developers in almost all cases would expect. You either have to register a handler or you have to intentionally opt out, and indicate you intend to defer error handling until later; you're opting for the extra responsibility in just that specific case. The only real danger in this approach is if you defer() a Promise but then fail to actually ever observe/handle its rejection. But you had to intentionally call defer() to opt into that pit of despair -- the default was the pit of success -- so there's not much else we could do to save you from your own mistakes. I think there's still hope for Promise error handling (post-ES6). I hope the powers that be will rethink the situation and consider this alternative. In the meantime, you can implement this yourself (a challenging exercise for the reader!), or use a smarter Promise library that does so for you!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1888-1888 | Added on Tuesday, December 20, 2016 7:33:07 AM
+
+Promise.all([ .. ])
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1890-1893 | Added on Tuesday, December 20, 2016 7:33:59 AM
+
+In classic programming terminology, a "gate" is a mechanism that waits on two or more parallel/concurrent tasks to complete before continuing. It doesn't matter what order they finish in, just that all of them have to complete for the gate to open and let the flow control through. In the Promise API, we call this pattern all([ .. ]).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1896-1904 | Added on Tuesday, December 20, 2016 7:34:37 AM
+
+var p1 = request( "http://some.url.1/" );var p2 = request( "http://some.url.2/" );Promise.all( [p1,p2] ).then( function(msgs){    // both `p1` and `p2` fulfill and pass in    // their messages here    return request(        "http://some.url.3/?v=" + msgs.join(",")    );} ).then( function(msg){    console.log( msg );} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1913-1914 | Added on Tuesday, December 20, 2016 7:35:53 AM
+
+Remember to always attach a rejection/error handler to every promise, even and especially the one that comes back from Promise.all([ .. ]).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1914-1915 | Added on Tuesday, December 20, 2016 7:36:26 AM
+
+Promise.race([ .. ])
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1916-1917 | Added on Tuesday, December 20, 2016 7:36:59 AM
+
+sometimes you only want to respond to the "first Promise to cross the finish line," letting the other Promises fall away. This pattern is classically called a "latch," but in Promises it's called a "race."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1941-1953 | Added on Tuesday, December 20, 2016 7:39:16 AM
+
+// `foo()` is a Promise-aware function// `timeoutPromise(..)`, defined ealier, returns// a Promise that rejects after a specified delay// setup a timeout for `foo()`Promise.race( [    foo(),                    // attempt `foo()`    timeoutPromise( 3000 )    // give it 3 seconds] ).then(    function(){        // `foo(..)` fulfilled in time!    },    function(err){        // either `foo()` rejected, or it just        // didn't finish in time, so inspect        // `err` to know which    }); This timeout pattern
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 1954-1954 | Added on Tuesday, December 20, 2016 7:39:27 AM
+
+"Finally"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2018-2018 | Added on Tuesday, December 20, 2016 7:51:43 AM
+
+Concurrent Iterations
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2280-2298 | Added on Wednesday, December 21, 2016 7:39:57 AM
+
+// polyfill-safe guard checkif (!Promise.wrap) {    Promise.wrap = function(fn) {        return function() {            var args = [].slice.call( arguments );            return new Promise( function(resolve,reject){                fn.apply(                    null,                    args.concat( function(err,v){                        if (err) {                            reject( err );                        }                        else {                            resolve( v );                        }                    } )                );            } );        };    };} OK,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2299-2301 | Added on Wednesday, December 21, 2016 7:40:08 AM
+
+It takes a function that expects an error-first style callback as its last parameter, and returns a new one that automatically creates a Promise to return, and substitutes the callback for you, wired up to the Promise fulfillment/rejection.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2302-2305 | Added on Wednesday, December 21, 2016 7:40:21 AM
+
+let's just look at how we use it: var request = Promise.wrap( ajax );request( "http://some.url.1/" ).then( .. ).. Wow, that was pretty easy!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2305-2307 | Added on Wednesday, December 21, 2016 7:40:32 AM
+
+Promise.wrap(..) does not produce a Promise. It produces a function that will produce Promises. In a sense, a Promise-producing function could be seen as a "Promise factory." I propose "promisory" as the name for such a thing ("Promise" + "factory"). The act of wrapping a callback-expecting function to be a
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2309-2311 | Added on Wednesday, December 21, 2016 7:40:49 AM
+
+Note: Promisory isn't a made-up term. It's a real word, and its definition means to contain or convey a promise. That's exactly what these functions are doing, so it turns out to be a pretty perfect terminology match!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2264-2273 | Added on Wednesday, December 21, 2016 7:41:22 AM
+
+Consider a callback-based scenario like the following: function foo(x,y,cb) {    ajax(        "http://some.url.1/?x=" + x + "&y=" + y,        cb    );}foo( 11, 31, function(err,text) {    if (err) {        console.error( err );    }    else {        console.log( text );    }} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2314-2333 | Added on Wednesday, December 21, 2016 7:41:45 AM
+
+So back to our earlier example, we need a promisory for both ajax(..) and foo(..): // make a promisory for `ajax(..)`var request = Promise.wrap( ajax );// refactor `foo(..)`, but keep it externally// callback-based for compatibility with other// parts of the code for now -- only use// `request(..)`'s promise internally.function foo(x,y,cb) {    request(        "http://some.url.1/?x=" + x + "&y=" + y    )    .then(        function fulfilled(text){            cb( null, text );        },        cb    );}// now, for this code's purposes, make a// promisory for `foo(..)`var betterFoo = Promise.wrap( foo );// and use the promisorybetterFoo( 11, 31 ).then(    function fulfilled(text){        console.log( text );    },    function rejected(err){        console.error( err );    });
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2334-2343 | Added on Wednesday, December 21, 2016 7:42:28 AM
+
+Of course, while we're refactoring foo(..) to use our new request(..) promisory, we could just make foo(..) a promisory itself, instead of remaining callback-based and needing to make and use the subsequent betterFoo(..) promisory. This decision just depends on whether foo(..) needs to stay callback-based compatible with other parts of the code base or not. Consider: `foo(..)` is now also a promisory because itdelegates to the `request(..)` promisoryfunction foo(x,y) {    return request(        "http://some.url.1/?x=" + x + "&y=" + y    );}foo( 11, 31 ).then( .. )..
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2343-2344 | Added on Wednesday, December 21, 2016 7:42:34 AM
+
+While ES6 Promises don't natively ship with helpers for such promisory wrapping,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2350-2352 | Added on Wednesday, December 21, 2016 7:45:54 AM
+
+the embodiment of the "action at a distance" anti-pattern (http://en.wikipedia.org/wiki/Action_at_a_distance_%28computer_programming%29).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2347-2348 | Added on Wednesday, December 21, 2016 7:46:13 AM
+
+Note: Many Promise abstraction libraries provide facilities to cancel Promises, but this is a terrible idea!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2349-2352 | Added on Wednesday, December 21, 2016 7:46:23 AM
+
+the problem is that it would let one consumer/observer of a Promise affect some other consumer's ability to observe that same Promise. This violates the future-value's trustability (external immutability), but morever is the embodiment of the "action at a distance" anti-pattern (http://en.wikipedia.org/wiki/Action_at_a_distance_%28computer_programming%29).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2374-2376 | Added on Wednesday, December 21, 2016 7:48:18 AM
+
+A single Promise is not really a flow-control mechanism (at least not in a very meaningful sense), which is exactly what cancelation refers to; that's why Promise cancelation would feel awkward.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2376-2377 | Added on Wednesday, December 21, 2016 7:48:36 AM
+
+By contrast, a chain of Promises taken collectively together -- what I like to call a "sequence" -- is a flow control expression, and thus it's appropriate for cancelation to be defined at that level of abstraction.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2377-2379 | Added on Wednesday, December 21, 2016 7:48:55 AM
+
+No individual Promise should be cancelable, but it's sensible for a sequence to be cancelable, because you don't pass around a sequence as a single immutable value like you do with a Promise.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2379-2379 | Added on Wednesday, December 21, 2016 7:49:08 AM
+
+Promise Performance
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2383-2384 | Added on Wednesday, December 21, 2016 7:50:19 AM
+
+More work to do, more guards to protect, means that Promises are slower as compared to naked, untrustable callbacks.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2404-2404 | Added on Wednesday, December 21, 2016 7:52:12 AM
+
+Review
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2405-2406 | Added on Wednesday, December 21, 2016 7:52:17 AM
+
+Promises are awesome. Use them. They solve the inversion of control issues that plague us with callbacks-only code.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2406-2407 | Added on Wednesday, December 21, 2016 7:52:38 AM
+
+They don't get rid of callbacks, they just redirect the orchestration of those callbacks to a trustable intermediary mechanism that sits between us and another utility.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2410-2410 | Added on Wednesday, December 21, 2016 7:53:04 AM
+
+Chapter 04: Generators
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2416-2416 | Added on Thursday, December 22, 2016 7:33:13 AM
+
+Breaking Run-to-Completion
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2416-2418 | Added on Thursday, December 22, 2016 7:33:23 AM
+
+an expectation that JS developers almost universally rely on in their code: once a function starts executing, it runs until it completes, and no other code can interrupt and run in between.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2418-2419 | Added on Thursday, December 22, 2016 7:33:30 AM
+
+ES6 introduces a new type of function that does not behave with the run-to-completion behavior. This new type of function is called a "generator."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2419-2426 | Added on Thursday, December 22, 2016 7:33:41 AM
+
+To understand the implications, let's consider this example: var x = 1;function foo() {    x++;    bar();                // <-- what about this line?    console.log( "x:", x );}function bar() {    x++;}foo();  
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2428-2429 | Added on Thursday, December 22, 2016 7:34:23 AM
+
+In this example, we know for sure that bar() runs in between x++ and console.log(x). But what if bar() wasn't there? Obviously the result would be 2 instead of 3.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2429-2431 | Added on Thursday, December 22, 2016 7:34:38 AM
+
+Now let's twist your brain. What if bar() wasn't present, but it could still somehow run between the x++ and console.log(x) statements? How would that be possible?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2431-2434 | Added on Thursday, December 22, 2016 7:35:31 AM
+
+In preemptive multithreaded languages, it would essentially be possible for bar() to "interrupt" and run at exactly the right moment between those two statements. But JS is not preemptive, nor is it (currently) multithreaded. And yet, a cooperative form of this "interruption" (concurrency) is possible, if foo() itself could somehow indicate a "pause" at that part in the code.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2436-2443 | Added on Thursday, December 22, 2016 7:36:10 AM
+
+Here's the ES6 code to accomplish such cooperative concurrency: var x = 1;function *foo() {    x++;    yield; // pause!    console.log( "x:", x );}function bar() {    x++;}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2449-2450 | Added on Thursday, December 22, 2016 7:37:13 AM
+
+Now, how can we run the code in that previous snippet such that bar() executes at the point of the yield inside of *foo()?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2450-2455 | Added on Thursday, December 22, 2016 7:37:33 AM
+
+// construct an iterator `it` to control the generatorvar it = foo();// start `foo()` here!it.next();x;                        // 2bar();x;                        // 3it.next();                // x: 3
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2457-2466 | Added on Thursday, December 22, 2016 7:38:58 AM
+
+let's walk through the behavior flow: The it = foo() operation does not execute the *foo() generator yet, but it merely constructs an iterator that will control its execution. More on iterators in a bit. The first it.next() starts the *foo() generator, and runs the x++ on the first line of *foo(). *foo() pauses at the yield statement, at which point that first it.next() call finishes. At the moment, *foo() is still running and active, but it's in a paused state. We inspect the value of x, and it's now 2. We call bar(), which increments x again with x++. We inspect the value of x again, and it's now 3. The final it.next() call resumes the *foo() generator from where it was paused, and runs the console.log(..) statement, which uses the current value of x of 3.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2468-2469 | Added on Thursday, December 22, 2016 7:40:46 AM
+
+So, a generator is a special kind of function that can start and stop one or more times, and doesn't necessarily ever have to finish.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2491-2504 | Added on Thursday, December 22, 2016 7:45:20 AM
+
+Consider: function *foo(x) {    var y = x * (yield);    return y;}var it = foo( 6 );// start `foo(..)`it.next();var res = it.next( 7 );res.value;        // 42 First, we pass in 6 as the parameter x. Then we call it.next(), and it starts up *foo(..). Inside *foo(..), the var y = x .. statement starts to be processed, but then it runs across a yield expression. At that point, it pauses *foo(..) (in the middle of the assignment statement!), and essentially requests the calling code to provide a result value for the yield expression. Next, we call it.next( 7 ), which is passing the 7 value back in to be that result of the paused yield expression. So, at this point, the assignment statement is essentially var y = 6 * 7. Now, return y returns that 42 value back as the result of the it.next( 7 ) call.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2509-2510 | Added on Thursday, December 22, 2016 7:48:46 AM
+
+Tale of Two Questions
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2511-2517 | Added on Thursday, December 22, 2016 7:48:59 AM
+
+Consider only the generator code: var y = x * (yield);return y; This first yield is basically asking a question: "What value should I insert here?" Who's going to answer that question? Well, the first next() has already run to get the generator up to this point, so obviously it can't answer the question. So, the second next(..) call must answer the question posed by the first yield.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2518-2518 | Added on Thursday, December 22, 2016 7:49:16 AM
+
+But let's flip our perspective. Let's look at it not from the generator's point of view, but from the iterator's point of view.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2519-2530 | Added on Thursday, December 22, 2016 7:50:07 AM
+
+To properly illustrate this perspective, we also need to explain that messages can go in both directions -- yield .. as an expression can send out messages in response to next(..) calls, and next(..) can send values to a paused yield expression. Consider this slightly adjusted code: function *foo(x) {    var y = x * (yield "Hello");    // <-- yield a value!    return y;}var it = foo( 6 );var res = it.next();    // first `next()`, don't pass anythingres.value;                // "Hello"res = it.next( 7 );        // pass `7` to waiting `yield`res.value;                // 42
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2531-2532 | Added on Thursday, December 22, 2016 7:51:08 AM
+
+yield .. and next(..) pair together as a two-way message passing system during the execution of the generator.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2542-2544 | Added on Thursday, December 22, 2016 7:52:06 AM
+
+The first next() call (with nothing passed to it) is basically asking a question: "What next value does the *foo(..) generator have to give me?" And who answers this question? The first yield "hello" expression.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2657-2672 | Added on Monday, December 26, 2016 8:13:56 AM
+
+Producers and Iterators Imagine you're producing a series of values where each value has a definable relationship to the previous value. To do this, you're going to need a stateful producer that remembers the last value it gave out. You can implement something like that straightforwardly using a function closure (see the Scope & Closures title of this series): var gimmeSomething = (function(){    var nextVal;    return function(){        if (nextVal === undefined) {            nextVal = 1;        }        else {            nextVal = (3 * nextVal) + 6;        }        return nextVal;    };})();gimmeSomething();        // 1gimmeSomething();        // 9gimmeSomething();        // 33gimmeSomething();        // 105
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2677-2679 | Added on Monday, December 26, 2016 8:14:39 AM
+
+In fact, this task is a very common design pattern, usually solved by iterators. An iterator is a well-defined interface for stepping through a series of values from a producer. The JS interface for iterators, as it is in most languages, is to call next() each time you want the next value from the producer.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2679-2698 | Added on Monday, December 26, 2016 8:15:10 AM
+
+We could implement the standard iterator interface for our number series producer: var something = (function(){    var nextVal;    return {        // needed for `for..of` loops        [Symbol.iterator]: function(){ return this; },        // standard iterator interface method        next: function(){            if (nextVal === undefined) {                nextVal = 1;            }            else {                nextVal = (3 * nextVal) + 6;            }            return { done:false, value:nextVal };        }    };})();something.next().value;        // 1something.next().value;        // 9something.next().value;        // 33something.next().value;        // 105 Note:
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2679-2702 | Added on Monday, December 26, 2016 8:16:18 AM
+
+We could implement the standard iterator interface for our number series producer: var something = (function(){    var nextVal;    return {        // needed for `for..of` loops        [Symbol.iterator]: function(){ return this; },        // standard iterator interface method        next: function(){            if (nextVal === undefined) {                nextVal = 1;            }            else {                nextVal = (3 * nextVal) + 6;            }            return { done:false, value:nextVal };        }    };})();something.next().value;        // 1something.next().value;        // 9something.next().value;        // 33something.next().value;        // 105 Note: We'll explain why we need the [Symbol.iterator]: .. part of this code snippet in the "Iterables" section. Syntactically though, two ES6 features are at play. First, the [ .. ] syntax is called a computed property name (see the this & Object Prototypes title of this series). It's a way in an object literal definition to specify an expression and use the result of that expression as the name for the property. Next, Symbol.iterator is one of ES6's predefined special Symbol values (see the ES6 & Beyond title of this book series).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2702-2704 | Added on Monday, December 26, 2016 8:17:29 AM
+
+The next() call returns an object with two properties: done is a boolean value signaling the iterator's complete status; value holds the iteration value.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2704-2710 | Added on Monday, December 26, 2016 8:17:45 AM
+
+ES6 also adds the for..of loop, which means that a standard iterator can automatically be consumed with native loop syntax: for (var v of something) {    console.log( v );    // don't let the loop run forever!    if (v > 500) {        break;    }}// 1 9 33 105 321 969
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2714-2715 | Added on Monday, December 26, 2016 8:18:13 AM
+
+The for..of loop automatically calls next() for each iteration -- it doesn't pass any values in to the next() -- and it will automatically terminate on receiving a done:true. It's quite handy for looping over a set of data.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2725-2730 | Added on Monday, December 26, 2016 8:19:08 AM
+
+In addition to making your own iterators, many built-in data structures in JS (as of ES6), like arrays, also have default iterators: var a = [1,3,5,7,9];for (var v of a) {    console.log( v );}// 1 3 5 7 9
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2738-2738 | Added on Monday, December 26, 2016 8:19:57 AM
+
+Iterables
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2738-2741 | Added on Monday, December 26, 2016 8:20:22 AM
+
+The something object in our running example is called an iterator, as it has the next() method on its interface. But a closely related term is iterable, which is an object that contains an iterator that can iterate over its values.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2741-2743 | Added on Monday, December 26, 2016 8:20:55 AM
+
+As of ES6, the way to retrieve an iterator from an iterable is that the iterable must have a function on it, with the name being the special ES6 symbol value Symbol.iterator. When this function is called, it returns an iterator. Though not required, generally each call should return a fresh new iterator.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2744-2751 | Added on Monday, December 26, 2016 8:21:25 AM
+
+a in the previous snippet is an iterable. The for..of loop automatically calls its Symbol.iterator function to construct an iterator. But we could of course call the function manually, and use the iterator it returns: var a = [1,3,5,7,9];var it = a[Symbol.iterator]();it.next().value;    // 1it.next().value;    // 3it.next().value;    // 5..
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2751-2762 | Added on Monday, December 26, 2016 8:21:47 AM
+
+In the previous code listing that defined something, you may have noticed this line: [Symbol.iterator]: function(){ return this; } That little bit of confusing code is making the something value -- the interface of the something iterator -- also an iterable; it's now both an iterable and an iterator. Then, we pass something to the for..of loop: for (var v of something) {    ..} The for..of loop expects something to be an iterable, so it looks for and calls its Symbol.iterator function. We defined that function to simply return this, so it just gives itself back, and the for..of loop is none the wiser.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2762-2762 | Added on Monday, December 26, 2016 8:22:23 AM
+
+Generator Iterator
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2763-2764 | Added on Monday, December 26, 2016 8:22:45 AM
+
+A generator can be treated as a producer of values that we extract one at a time through an iterator interface's next() calls.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2764-2768 | Added on Monday, December 26, 2016 8:23:00 AM
+
+So, a generator itself is not technically an iterable, though it's very similar -- when you execute the generator, you get an iterator back: function *foo(){ .. }var it = foo();
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2769-2778 | Added on Monday, December 26, 2016 8:23:25 AM
+
+We can implement the something infinite number series producer from earlier with a generator, like this: function *something() {    var nextVal;    while (true) {        if (nextVal === undefined) {            nextVal = 1;        }        else {            nextVal = (3 * nextVal) + 6;        }        yield nextVal;    }}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2780-2782 | Added on Monday, December 26, 2016 8:24:20 AM
+
+However, in a generator, such a loop is generally totally OK if it has a yield in it, as the generator will pause at each iteration, yielding back to the main program and/or to the event loop queue. To put it glibly, "generators put the while..true back in JS programming!"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2783-2784 | Added on Monday, December 26, 2016 8:24:34 AM
+
+That's a fair bit cleaner and simpler, right? Because the generator pauses at each yield, the state (scope) of the function *something() is kept around, meaning there's no need for the closure boilerplate to preserve variable state across calls.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2787-2793 | Added on Monday, December 26, 2016 8:25:41 AM
+
+And now we can use our shiny new *something() generator with a for..of loop, and you'll see it works basically identically: for (var v of something()) {    console.log( v );    // don't let the loop run forever!    if (v > 500) {        break;    }}// 1 9 33 105 321 969
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2794-2796 | Added on Monday, December 26, 2016 8:26:14 AM
+
+But don't skip over for (var v of something()) ..! We didn't just reference something as a value like in earlier examples, but instead called the *something() generator to get its iterator for the for..of loop to use.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2797-2802 | Added on Monday, December 26, 2016 8:26:47 AM
+
+Why couldn't we say for (var v of something) ..? Because something here is a generator, which is not an iterable. We have to call something() to construct a producer for the for..of loop to iterate over. The something() call produces an iterator, but the for..of loop wants an iterable, right? Yep. The generator's iterator also has a Symbol.iterator function on it, which basically does a return this, just like the something iterable we defined earlier. In other words, a generator's iterator is also an iterable!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2804-2807 | Added on Monday, December 26, 2016 8:27:22 AM
+
+But there's a hidden behavior that takes care of that for you. "Abnormal completion" (i.e., "early termination") of the for..of loop -- generally caused by a break, return, or an uncaught exception -- sends a signal to the generator's iterator for it to terminate.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2811-2825 | Added on Monday, December 26, 2016 8:29:04 AM
+
+If you specify a try..finally clause inside the generator, it will always be run even when the generator is externally completed. This is useful if you need to clean up resources (database connections, etc.): function *something() {    try {        var nextVal;        while (true) {            if (nextVal === undefined) {                nextVal = 1;            }            else {                nextVal = (3 * nextVal) + 6;            }            yield nextVal;        }    }    // cleanup clause    finally {        console.log( "cleaning up!" );    }}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2827-2838 | Added on Monday, December 26, 2016 8:29:25 AM
+
+you could instead manually terminate the generator's iterator instance from the outside with return(..): var it = something();for (var v of it) {    console.log( v );    // don't let the loop run forever!    if (v > 500) {        console.log(            // complete the generator's iterator            it.return( "Hello World" ).value        );        // no `break` needed here    }}// 1 9 33 105 321 969// cleaning up!// Hello World When we call it.return(..), it immediately terminates the generator, which of course runs the finally clause.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2844-2844 | Added on Monday, December 26, 2016 8:30:05 AM
+
+Iterating Generators Asynchronously
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2846-2855 | Added on Monday, December 26, 2016 8:31:24 AM
+
+3. Let's recall the callback approach: function foo(x,y,cb) {    ajax(        "http://some.url.1/?x=" + x + "&y=" + y,        cb    );}foo( 11, 31, function(err,text) {    if (err) {        console.error( err );    }    else {        console.log( text );    }} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2855-2873 | Added on Monday, December 26, 2016 8:31:48 AM
+
+If we wanted to express this same task flow control with a generator, we could do: function foo(x,y) {    ajax(        "http://some.url.1/?x=" + x + "&y=" + y,        function(err,data){            if (err) {                // throw an error into `*main()`                it.throw( err );            }            else {                // resume `*main()` with received `data`                it.next( data );            }        }    );}function *main() {    try {        var text = yield foo( 11, 31 );        console.log( text );    }    catch (err) {        console.error( err );    }}var it = main();// start it all up!it.next();
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2876-2879 | Added on Monday, December 26, 2016 8:32:57 AM
+
+First, let's look at this part of the code, which is the most important: var text = yield foo( 11, 31 );console.log( text );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2881-2881 | Added on Monday, December 26, 2016 8:33:52 AM
+
+If you recall
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2882-2884 | Added on Monday, December 26, 2016 8:33:58 AM
+
+var data = ajax( "..url 1.." );console.log( data ); And that code didn't work!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2884-2885 | Added on Monday, December 26, 2016 8:34:06 AM
+
+Can you spot the difference? It's the yield used in a generator.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2885-2886 | Added on Monday, December 26, 2016 8:34:20 AM
+
+That's the magic! That's what allows us to have what appears to be blocking, synchronous code, but it doesn't actually block the whole program; it only pauses/blocks the code in the generator itself.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2887-2889 | Added on Monday, December 26, 2016 8:35:02 AM
+
+In yield foo(11,31), first the foo(11,31) call is made, which returns nothing (aka undefined), so we're making a call to request data, but we're actually then doing yield undefined. That's OK, because the code is not currently relying on a yielded value to do anything interesting.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2891-2892 | Added on Monday, December 26, 2016 8:35:49 AM
+
+So, the generator pauses at the yield, essentially asking the question, "what value should I return to assign to the variable text?" Who's going to answer that question?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2892-2894 | Added on Monday, December 26, 2016 8:36:03 AM
+
+Look at foo(..). If the Ajax request is successful, we call: it.next( data );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2894-2896 | Added on Monday, December 26, 2016 8:36:51 AM
+
+That's resuming the generator with the response data, which means that our paused yield expression receives that value directly, and then as it restarts the generator code, that value gets assigned to the local variable text.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2896-2899 | Added on Monday, December 26, 2016 8:37:11 AM
+
+Take a step back and consider the implications. We have totally synchronous-looking code inside the generator (other than the yield keyword itself), but hidden behind the scenes, inside of foo(..), the operations can complete asynchronously. That's huge!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2900-2901 | Added on Monday, December 26, 2016 8:37:47 AM
+
+In essence, we are abstracting the asynchrony away as an implementation detail, so that we can reason synchronously/sequentially about our flow control: "Make an Ajax request, and when it finishes print out the response."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2904-2904 | Added on Monday, December 26, 2016 8:38:14 AM
+
+Synchronous Error Handling
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2906-2910 | Added on Monday, December 26, 2016 8:38:29 AM
+
+try {    var text = yield foo( 11, 31 );    console.log( text );}catch (err) {    console.error( err );}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2913-2919 | Added on Monday, December 26, 2016 8:39:18 AM
+
+The awesome part is that this yield pausing also allows the generator to catch an error. We throw that error into the generator with this part of the earlier code listing: if (err) {    // throw an error into `*main()`    it.throw( err );} The yield-pause nature of generators means that not only do we get synchronous-looking return values from async function calls, but we can also synchronously catch errors from those async function calls!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2942-2943 | Added on Monday, December 26, 2016 8:40:09 AM
+
+Generators + Promises
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2944-2945 | Added on Monday, December 26, 2016 8:54:46 AM
+
+we lost something very important: the trustability and composability of Promises
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2945-2946 | Added on Monday, December 26, 2016 8:55:03 AM
+
+The best of all worlds in ES6 is to combine generators (synchronous-looking async code) with Promises (trustable and composable).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2947-2956 | Added on Monday, December 26, 2016 8:55:41 AM
+
+function foo(x,y) {    return request(        "http://some.url.1/?x=" + x + "&y=" + y    );}foo( 11, 31 ).then(    function(text){        console.log( text );    },    function(err){        console.error( err );    });
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2956-2958 | Added on Monday, December 26, 2016 8:56:07 AM
+
+In our earlier generator code for the running Ajax example, foo(..) returned nothing (undefined), and our iterator control code didn't care about that yielded value.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2958-2960 | Added on Monday, December 26, 2016 8:56:31 AM
+
+But here the Promise-aware foo(..) returns a promise after making the Ajax call. That suggests that we could construct a promise with foo(..) and then yield it from the generator, and then the iterator control code would receive that promise.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2960-2962 | Added on Monday, December 26, 2016 8:57:00 AM
+
+But what should the iterator do with the promise? It should listen for the promise to resolve (fulfillment or rejection), and then either resume the generator with the fulfillment message or throw an error into the generator with the rejection reason.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2962-2963 | Added on Monday, December 26, 2016 8:57:16 AM
+
+it's so important.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2963-2964 | Added on Monday, December 26, 2016 8:57:34 AM
+
+The natural way to get the most out of Promises and generators is to yield a Promise, and wire that Promise to control the generator's iterator.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2965-2975 | Added on Monday, December 26, 2016 8:58:02 AM
+
+function foo(x,y) {    return request(        "http://some.url.1/?x=" + x + "&y=" + y    );}function *main() {    try {        var text = yield foo( 11, 31 );        console.log( text );    }    catch (err) {        console.error( err );    }}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2975-2977 | Added on Monday, December 26, 2016 8:58:41 AM
+
+The most powerful revelation in this refactor is that the code inside *main() did not have to change at all! Inside the generator, whatever values are yielded out is just an opaque implementation detail,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2978-2978 | Added on Monday, December 26, 2016 8:59:18 AM
+
+But how are we going to run *main() now?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2980-2985 | Added on Monday, December 26, 2016 8:59:29 AM
+
+var it = main();var p = it.next().value;// wait for the `p` promise to resolvep.then(    function(text){        it.next( text );    },    function(err){        it.throw( err );    });
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2995-2995 | Added on Monday, December 26, 2016 9:00:38 AM
+
+Promise-Aware Generator Runner
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2997-2999 | Added on Monday, December 26, 2016 9:01:11 AM
+
+This is such an important pattern, and you don't want to get it wrong (or exhaust yourself repeating it over and over), so your best bet is to use a utility that is specifically designed to run Promise-yielding generators in the manner we've illustrated.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 2990-2990 | Added on Monday, December 26, 2016 9:02:03 AM
+
+What if we wanted to be able to Promise-drive a generator no matter how many steps it has?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3000-3003 | Added on Monday, December 26, 2016 9:02:36 AM
+
+let's just define our own standalone utility that we'll call run(..): // thanks to Benjamin Gruenbaum (@benjamingr on GitHub) for// big improvements here!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3003-3039 | Added on Monday, December 26, 2016 9:03:18 AM
+
+function run(gen) {    var args = [].slice.call( arguments, 1), it;    // initialize the generator in the current context    it = gen.apply( this, args );    // return a promise for the generator completing    return Promise.resolve()        .then( function handleNext(value){            // run to the next yielded value            var next = it.next( value );            return (function handleResult(next){                // generator has completed running?                if (next.done) {                    return next.value;                }                // otherwise keep going                else {                    return Promise.resolve( next.value )                        .then(                            // resume the async loop on                            // success, sending the resolved                            // value back into the generator                            handleNext,                            // if `value` is a rejected                            // promise, propagate error back                            // into the generator for its own                            // error handling                            function handleErr(err) {                                return Promise.resolve(                                    it.throw( err )                                )                                .then( handleResult );                            }                        );                }            })(next);        } );} As
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3040-3041 | Added on Monday, December 26, 2016 9:21:29 AM
+
+So, a utility/library helper is definitely the way to go.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3042-3046 | Added on Monday, December 26, 2016 9:21:55 AM
+
+How would you use run(..) with *main() in our running Ajax example? function *main() {    // ..}run( main ); That's it!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3046-3047 | Added on Monday, December 26, 2016 9:22:06 AM
+
+The way we wired run(..), it will automatically advance the generator you pass to it, asynchronously until completion.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3078-3079 | Added on Tuesday, December 27, 2016 7:27:49 AM
+
+Imagine a scenario where you need to fetch data from two different sources, then combine those responses to make a third request, and finally print out the last response.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3081-3090 | Added on Tuesday, December 27, 2016 7:28:31 AM
+
+function *foo() {    var r1 = yield request( "http://some.url.1" );    var r2 = yield request( "http://some.url.2" );    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo ); This code will work, but in the specifics of our scenario, it's not optimal.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3090-3092 | Added on Tuesday, December 27, 2016 7:28:48 AM
+
+Can you spot why? Because the r1 and r2 requests can -- and for performance reasons, should -- run concurrently, but in this code they will run sequentially; the "http://some.url.2"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3093-3095 | Added on Tuesday, December 27, 2016 7:29:24 AM
+
+But how exactly would you do that with a generator and yield? We know that yield is only a single pause point in the code, so you can't really do two pauses at the same time. The most natural and effective answer is to
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3093-3096 | Added on Tuesday, December 27, 2016 7:29:43 AM
+
+But how exactly would you do that with a generator and yield? We know that yield is only a single pause point in the code, so you can't really do two pauses at the same time. The most natural and effective answer is to base the async flow on Promises, specifically on their capability to manage state in a time-independent fashion (see "Future Value" in Chapter 3).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3097-3108 | Added on Tuesday, December 27, 2016 7:30:27 AM
+
+function *foo() {    // make both requests "in parallel"    var p1 = request( "http://some.url.1" );    var p2 = request( "http://some.url.2" );    // wait until both promises resolve    var r1 = yield p1;    var r2 = yield p2;    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3110-3110 | Added on Tuesday, December 27, 2016 7:30:44 AM
+
+It doesn't matter which one finishes first, because promises will hold onto their resolved state for as long as necessary.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3114-3115 | Added on Tuesday, December 27, 2016 7:31:14 AM
+
+Either way, both p1 and p2 will run concurrently, and both have to finish, in either order, before the r3 = yield request.. Ajax request will be made.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3115-3117 | Added on Tuesday, December 27, 2016 7:31:32 AM
+
+If that flow control processing model sounds familiar, it's basically the same as what we identified in Chapter 3 as the "gate" pattern, enabled by the Promise.all([ .. ]) utility. So, we could also express the flow control like this:
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3117-3129 | Added on Tuesday, December 27, 2016 7:32:00 AM
+
+function *foo() {    // make both requests "in parallel," and    // wait until both promises resolve    var results = yield Promise.all( [        request( "http://some.url.1" ),        request( "http://some.url.2" )    ] );    var r1 = results[0];    var r2 = results[1];    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3131-3132 | Added on Tuesday, December 27, 2016 7:32:40 AM
+
+In other words, all of the concurrency capabilities of Promises are available to us in the generator+Promise approach. So in any place where you need more than sequential this-then-that async flow control steps, Promises are likely your best bet.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3133-3133 | Added on Tuesday, December 27, 2016 7:32:46 AM
+
+Promises, Hidden
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3133-3134 | Added on Tuesday, December 27, 2016 7:32:56 AM
+
+As a word of stylistic caution, be careful about how much Promise logic you include inside your generators.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3136-3151 | Added on Tuesday, December 27, 2016 7:34:14 AM
+
+this might be a cleaner approach: // note: normal function, not generatorfunction bar(url1,url2) {    return Promise.all( [        request( url1 ),        request( url2 )    ] );}function *foo() {    // hide the Promise-based concurrency details    // inside `bar(..)`    var results = yield bar(        "http://some.url.1",        "http://some.url.2"    );    var r1 = results[0];    var r2 = results[1];    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3151-3154 | Added on Tuesday, December 27, 2016 7:34:28 AM
+
+Inside *foo(), it's cleaner and clearer that all we're doing is just asking bar(..) to get us some results, and we'll yield-wait on that to happen. We don't have to care that under the covers a Promise.all([ .. ]) Promise composition will be used to make that happen.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3154-3154 | Added on Tuesday, December 27, 2016 7:34:38 AM
+
+We treat asynchrony, and indeed Promises, as an implementation detail.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3155-3160 | Added on Tuesday, December 27, 2016 7:34:54 AM
+
+Hiding your Promise logic inside a function that you merely call from your generator is especially useful if you're going to do a sophisticated series flow-control. For example: function bar() {    Promise.all( [        baz( .. )        .then( .. ),        Promise.race( [ .. ] )    ] )    .then( .. )} That
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3155-3163 | Added on Tuesday, December 27, 2016 7:35:13 AM
+
+Hiding your Promise logic inside a function that you merely call from your generator is especially useful if you're going to do a sophisticated series flow-control. For example: function bar() {    Promise.all( [        baz( .. )        .then( .. ),        Promise.race( [ .. ] )    ] )    .then( .. )} That kind of logic is sometimes required, and if you dump it directly inside your generator(s), you've defeated most of the reason why you would want to use generators in the first place. We should intentionally abstract such details away from our generator code so that they don't clutter up the higher level task expression.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3163-3164 | Added on Tuesday, December 27, 2016 7:35:23 AM
+
+Beyond creating code that is both functional and performant, you should also strive to make code that is as reason-able and maintainable as possible.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3167-3167 | Added on Tuesday, December 27, 2016 7:35:48 AM
+
+Generator Delegation
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3170-3182 | Added on Tuesday, December 27, 2016 7:37:24 AM
+
+It may then occur to you that you might try to call one generator from another generator, using our run(..) helper, such as: function *foo() {    var r2 = yield request( "http://some.url.2" );    var r3 = yield request( "http://some.url.3/?v=" + r2 );    return r3;}function *bar() {    var r1 = yield request( "http://some.url.1" );    // "delegating" to `*foo()` via `run(..)`    var r3 = yield run( foo );    console.log( r3 );}run( bar );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3182-3183 | Added on Tuesday, December 27, 2016 7:37:31 AM
+
+We run *foo() inside of *bar() by using our run(..) utility again.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3186-3187 | Added on Tuesday, December 27, 2016 7:37:58 AM
+
+But there's an even better way to integrate calling *foo() into *bar(), and it's called yield-delegation.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3187-3187 | Added on Tuesday, December 27, 2016 7:38:17 AM
+
+The special syntax for yield-delegation is: yield * __
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3188-3204 | Added on Tuesday, December 27, 2016 7:38:49 AM
+
+function *foo() {    console.log( "`*foo()` starting" );    yield 3;    yield 4;    console.log( "`*foo()` finished" );}function *bar() {    yield 1;    yield 2;    yield *foo();    // `yield`-delegation!    yield 5;}var it = bar();it.next().value;    // 1it.next().value;    // 2it.next().value;    // `*foo()` starting                    // 3it.next().value;    // 4it.next().value;    // `*foo()` finished                    // 5
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3208-3210 | Added on Tuesday, December 27, 2016 7:40:05 AM
+
+First, calling foo() creates an iterator exactly as we've already seen. Then, yield * delegates/transfers the iterator instance control (of the present *bar() generator) over to this other *foo() iterator.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3214-3226 | Added on Tuesday, December 27, 2016 7:40:38 AM
+
+So now back to the previous example with the three sequential Ajax requests: function *foo() {    var r2 = yield request( "http://some.url.2" );    var r3 = yield request( "http://some.url.3/?v=" + r2 );    return r3;}function *bar() {    var r1 = yield request( "http://some.url.1" );    // "delegating" to `*foo()` via `yield*`    var r3 = yield *foo();    console.log( r3 );}run( bar ); The only difference
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3214-3227 | Added on Tuesday, December 27, 2016 7:40:51 AM
+
+So now back to the previous example with the three sequential Ajax requests: function *foo() {    var r2 = yield request( "http://some.url.2" );    var r3 = yield request( "http://some.url.3/?v=" + r2 );    return r3;}function *bar() {    var r1 = yield request( "http://some.url.1" );    // "delegating" to `*foo()` via `yield*`    var r3 = yield *foo();    console.log( r3 );}run( bar ); The only difference between this snippet and the version used earlier is the use of yield *foo() instead of the previous yield run(foo).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3231-3231 | Added on Tuesday, December 27, 2016 7:41:18 AM
+
+Why Delegation?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3231-3232 | Added on Tuesday, December 27, 2016 7:41:32 AM
+
+The purpose of yield-delegation is mostly code organization, and in that way is symmetrical with normal function calling.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3235-3237 | Added on Tuesday, December 27, 2016 7:42:11 AM
+
+For all these exact same reasons, keeping generators separate aids in program readability, maintenance, and debuggability. In that respect, yield * is a syntactic shortcut for manually iterating over the steps of *foo() while inside of *bar().
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3343-3344 | Added on Tuesday, December 27, 2016 7:44:25 AM
+
+Delegating Asynchrony
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3359-3360 | Added on Tuesday, December 27, 2016 7:46:11 AM
+
+Delegating "Recursion"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3362-3371 | Added on Tuesday, December 27, 2016 7:46:21 AM
+
+function *foo(val) {    if (val > 1) {        // generator recursion        val = yield *foo( val - 1 );    }    return yield request( "http://some.url/?v=" + val );}function *bar() {    var r1 = yield *foo( 3 );    console.log( r1 );}run( bar );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3375-3395 | Added on Tuesday, December 27, 2016 7:46:43 AM
+
+Hang on, this is going to be quite intricate to describe in detail: run(bar) starts up the *bar() generator. foo(3) creates an iterator for *foo(..) and passes 3 as its val parameter. Because 3 > 1, foo(2) creates another iterator and passes in 2 as its val parameter. Because 2 > 1, foo(1) creates yet another iterator and passes in 1 as its val parameter. 1 > 1 is false, so we next call request(..) with the 1 value, and get a promise back for that first Ajax call. That promise is yielded out, which comes back to the *foo(2) generator instance. The yield * passes that promise back out to the *foo(3) generator instance. Another yield * passes the promise out to the *bar() generator instance. And yet again another yield * passes the promise out to the run(..) utility, which will wait on that promise (for the first Ajax request) to proceed. When the promise resolves, its fulfillment message is sent to resume *bar(), which passes through the yield * into the *foo(3) instance, which then passes through the yield * to the *foo(2) generator instance, which then passes through the yield * to the normal yield that's waiting in the *foo(3) generator instance. That first call's Ajax response is now immediately returned from the *foo(3) generator instance, which sends that value back as the result of the yield * expression in the *foo(2) instance, and assigned to its local val variable. Inside *foo(2), a second Ajax request is made with request(..), whose promise is yielded back to the *foo(1) instance, and then yield * propagates all the way out to run(..) (step 7 again). When the promise resolves, the second Ajax response propagates all the way back into the *foo(2) generator instance, and is assigned to its local val variable. Finally, the third Ajax request is made with request(..), its promise goes out to run(..), and then its resolution value comes all the way back, which is then returned so that it comes back to the waiting yield * expression in *bar().
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3396-3396 | Added on Tuesday, December 27, 2016 7:46:58 AM
+
+Generator Concurrency
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3400-3401 | Added on Wednesday, December 28, 2016 7:36:59 AM
+
+two different simultaneous Ajax response handlers needed to coordinate with each other to make sure that the data communication was not a race condition.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3401-3413 | Added on Wednesday, December 28, 2016 7:37:12 AM
+
+We slotted the responses into the res array like this: function response(data) {    if (data.url == "http://some.url.1") {        res[0] = data;    }    else if (data.url == "http://some.url.2") {        res[1] = data;    }} But how can we use multiple generators concurrently for this scenario? // `request(..)` is a Promise-aware Ajax utilityvar res = [];function *reqData(url) {    res.push(        yield request( url )    );}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3416-3418 | Added on Wednesday, December 28, 2016 7:37:34 AM
+
+Instead of having to manually sort out res[0] and res[1] assignments, we'll use coordinated ordering so that res.push(..) properly slots the values in the expected and predictable order. The expressed logic thus should feel a bit cleaner.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3418-3426 | Added on Wednesday, December 28, 2016 7:37:47 AM
+
+But how will we actually orchestrate this interaction? First, let's just do it manually, with Promises: var it1 = reqData( "http://some.url.1" );var it2 = reqData( "http://some.url.2" );var p1 = it1.next();var p2 = it2.next();p1.then( function(data){    it1.next( data );    return p2;} ).then( function(data){    it2.next( data );} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3426-3429 | Added on Wednesday, December 28, 2016 7:38:00 AM
+
+*reqData(..)'s two instances are both started to make their Ajax requests, then paused with yield. Then we choose to resume the first instance when p1 resolves, and then p2's resolution will restart the second instance. In this way, we use Promise orchestration to ensure that res[0] will have the first response and res[1] will have the second response.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3430-3430 | Added on Wednesday, December 28, 2016 7:38:10 AM
+
+this is awfully manual,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3430-3444 | Added on Wednesday, December 28, 2016 7:38:30 AM
+
+Let's try it a different way: // `request(..)` is a Promise-aware Ajax utilityvar res = [];function *reqData(url) {    var data = yield request( url );    // transfer control    yield;    res.push( data );}var it1 = reqData( "http://some.url.1" );var it2 = reqData( "http://some.url.2" );var p1 = it.next();var p2 = it.next();p1.then( function(data){    it1.next( data );} );p2.then( function(data){    it2.next( data );} );Promise.all( [p1,p2] ).then( function(){    it1.next();    it2.next();} ); OK, this is a bit better
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3445-3445 | Added on Wednesday, December 28, 2016 7:38:43 AM
+
+two instances of *reqData(..) run truly concurrently,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3446-3448 | Added on Wednesday, December 28, 2016 7:38:55 AM
+
+In the previous snippet, the second instance was not given its data until after the first instance was totally finished. But here, both instances receive their data as soon as their respective responses come back, and then each instance does another yield for control transfer purposes. We then choose what order to resume them in the Promise.all([ .. ]) handler.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3449-3449 | Added on Wednesday, December 28, 2016 7:39:13 AM
+
+this approach hints at an easier form for a reusable utility, because of the symmetry.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3449-3461 | Added on Wednesday, December 28, 2016 7:39:28 AM
+
+Let's imagine using a utility called runAll(..): // `request(..)` is a Promise-aware Ajax utilityvar res = [];runAll(    function*(){        var p1 = request( "http://some.url.1" );        // transfer control        yield;        res.push( yield p1 );    },    function*(){        var p2 = request( "http://some.url.2" );        // transfer control        yield;        res.push( yield p2 );    });
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3461-3474 | Added on Wednesday, December 28, 2016 7:39:51 AM
+
+Note: We're not including a code listing for runAll(..) as it is not only long enough to bog down the text, but is an extension of the logic we've already implemented in run(..) earlier. So, as a good supplementary exercise for the reader, try your hand at evolving the code from run(..) to work like the imagined runAll(..). Also, my asynquence library provides a previously mentioned runner(..) utility with this kind of capability already built in, and will be discussed in Appendix A of this book. Here's how the processing inside runAll(..) would operate: The first generator gets a promise for the first Ajax response from "http://some.url.1", then yields control back to the runAll(..) utility. The second generator runs and does the same for "http://some.url.2", yielding control back to the runAll(..) utility. The first generator resumes, and then yields out its promise p1. The runAll(..) utility does the same in this case as our previous run(..), in that it waits on that promise to resolve, then resumes the same generator (no control transfer!). When p1 resolves, runAll(..) resumes the first generator again with that resolution value, and then res[0] is given its value. When the first generator then finishes, that's an implicit transfer of control. The second generator resumes, yields out its promise p2, and waits for it to resolve. Once it does, runAll(..) resumes the second generator with that value, and res[1] is set.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3474-3476 | Added on Wednesday, December 28, 2016 7:40:01 AM
+
+In this running example, we use an outer variable called res to store the results of the two different Ajax responses -- that's our concurrency coordination making that possible.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3476-3496 | Added on Wednesday, December 28, 2016 7:40:24 AM
+
+But it might be quite helpful to further extend runAll(..) to provide an inner variable space for the multiple generator instances to share, such as an empty object we'll call data below. Also, it could take non-Promise values that are yielded and hand them off to the next generator. Consider: // `request(..)` is a Promise-aware Ajax utilityrunAll(    function*(data){        data.res = [];        // transfer control (and message pass)        var url1 = yield "http://some.url.2";        var p1 = request( url1 ); // "http://some.url.1"        // transfer control        yield;        data.res.push( yield p1 );    },    function*(data){        // transfer control (and message pass)        var url2 = yield "http://some.url.1";        var p2 = request( url2 ); // "http://some.url.2"        // transfer control        yield;        data.res.push( yield p2 );    }); In this formulation, the two generators are not just coordinating control transfer, but actually communicating with each other, both through data.res and the yielded messages that trade url1 and url2 values. That's incredibly powerful!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3496-3497 | Added on Wednesday, December 28, 2016 7:40:41 AM
+
+Such realization also serves as a conceptual base for a more sophisticated asynchrony technique called CSP (Communicating Sequential Processes),
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3498-3498 | Added on Wednesday, December 28, 2016 7:40:46 AM
+
+Thunks
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3498-3500 | Added on Wednesday, December 28, 2016 7:41:01 AM
+
+So far, we've made the assumption that yielding a Promise from a generator -- and having that Promise resume the generator via a helper utility like run(..) -- was the best possible way to manage asynchrony with generators. To be clear, it is.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3501-3502 | Added on Wednesday, December 28, 2016 7:41:50 AM
+
+In general computer science, there's an old pre-JS concept called a "thunk."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3502-3503 | Added on Wednesday, December 28, 2016 7:42:06 AM
+
+a narrow expression of a thunk in JS is a function that -- without any parameters -- is wired to call another function.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3503-3504 | Added on Wednesday, December 28, 2016 7:42:17 AM
+
+In other words, you wrap a function definition around function call -- with any parameters it needs -- to defer the execution of that call, and that wrapping function is a thunk.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3504-3512 | Added on Wednesday, December 28, 2016 7:44:02 AM
+
+When you later execute the thunk, you end up calling the original function. For example: function foo(x,y) {    return x + y;}function fooThunk() {    return foo( 3, 4 );}// laterconsole.log( fooThunk() );    // 7
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3513-3513 | Added on Wednesday, December 28, 2016 7:45:40 AM
+
+But what about an async thunk?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3514-3523 | Added on Wednesday, December 28, 2016 7:45:53 AM
+
+Consider: function foo(x,y,cb) {    setTimeout( function(){        cb( x + y );    }, 1000 );}function fooThunk(cb) {    foo( 3, 4, cb );}// laterfooThunk( function(sum){    console.log( sum );        // 7} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3523-3526 | Added on Wednesday, December 28, 2016 7:46:09 AM
+
+As you can see, fooThunk(..) only expects a cb(..) parameter, as it already has values 3 and 4 (for x and y, respectively) pre-specified and ready to pass to foo(..). A thunk is just waiting around patiently for the last piece it needs to do its job: the callback.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3526-3537 | Added on Wednesday, December 28, 2016 7:46:24 AM
+
+let's invent a utility that does this wrapping for us. Consider: function thunkify(fn) {    var args = [].slice.call( arguments, 1 );    return function(cb) {        args.push( cb );        return fn.apply( null, args );    };}var fooThunk = thunkify( foo, 3, 4 );// laterfooThunk( function(sum) {    console.log( sum );        // 7} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3541-3543 | Added on Wednesday, December 28, 2016 7:47:34 AM
+
+The preceding formulation of thunkify(..) takes both the foo(..) function reference, and any parameters it needs, and returns back the thunk itself (fooThunk(..)). However, that's not the typical approach you'll find to thunks in JS.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3543-3545 | Added on Wednesday, December 28, 2016 7:47:57 AM
+
+Instead of thunkify(..) making the thunk itself, typically -- if not perplexingly -- the thunkify(..) utility would produce a function that produces thunks.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3545-3553 | Added on Wednesday, December 28, 2016 7:48:19 AM
+
+Consider: function thunkify(fn) {    return function() {        var args = [].slice.call( arguments );        return function(cb) {            args.push( cb );            return fn.apply( null, args );        };    };}
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3554-3560 | Added on Wednesday, December 28, 2016 7:48:57 AM
+
+The main difference here is the extra return function() { .. } layer. Here's how its usage differs: var whatIsThis = thunkify( foo );var fooThunk = whatIsThis( 3, 4 );// laterfooThunk( function(sum) {    console.log( sum );        // 7} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3560-3563 | Added on Wednesday, December 28, 2016 7:49:39 AM
+
+Obviously, the big question this snippet implies is what is whatIsThis properly called? It's not the thunk, it's the thing that will produce thunks from foo(..) calls. It's kind of like a "factory" for "thunks." There doesn't seem to be any kind of standard agreement for naming such a thing.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3563-3573 | Added on Wednesday, December 28, 2016 7:50:03 AM
+
+So, my proposal is "thunkory" ("thunk" + "factory"). So, thunkify(..) produces a thunkory, and a thunkory produces thunks. That reasoning is symmetric to my proposal for "promisory" in Chapter 3: var fooThunkory = thunkify( foo );var fooThunk1 = fooThunkory( 3, 4 );var fooThunk2 = fooThunkory( 5, 6 );// laterfooThunk1( function(sum) {    console.log( sum );        // 7} );fooThunk2( function(sum) {    console.log( sum );        // 11} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3578-3579 | Added on Wednesday, December 28, 2016 7:51:05 AM
+
+in general, it's quite useful to make thunkories at the beginning of your program to wrap existing API methods, and then be able to pass around and call those thunkories when you need thunks.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3579-3580 | Added on Wednesday, December 28, 2016 7:51:10 AM
+
+preserve a cleaner separation of capability.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3580-3587 | Added on Wednesday, December 28, 2016 7:51:19 AM
+
+// cleaner:var fooThunkory = thunkify( foo );var fooThunk1 = fooThunkory( 3, 4 );var fooThunk2 = fooThunkory( 5, 6 );// instead of:var fooThunk1 = thunkify( foo, 3, 4 );var fooThunk2 = thunkify( foo, 5, 6 );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3589-3589 | Added on Wednesday, December 28, 2016 9:29:06 PM
+
+s/promise/thunk/
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3869-3869 | Added on Wednesday, December 28, 2016 9:38:05 PM
+
+Chapter 5: Program Performance
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3870-3871 | Added on Wednesday, December 28, 2016 9:38:29 PM
+
+why asynchrony really matters to JS. The most obvious explicit reason is performance.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3880-3880 | Added on Wednesday, December 28, 2016 9:40:25 PM
+
+Web Workers
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3883-3885 | Added on Wednesday, December 28, 2016 9:40:41 PM
+
+Imagine splitting your program into two pieces, and running one of those pieces on the main UI thread, and running the other piece on an entirely separate thread. What kinds of concerns would such an architecture bring up?
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3885-3890 | Added on Wednesday, December 28, 2016 9:41:35 PM
+
+For one, you'd want to know if running on a separate thread meant that it ran in parallel (on systems with multiple CPUs/cores) such that a long-running process on that second thread would not block the main program thread. Otherwise, "virtual threading" wouldn't be of much benefit over what we already have in JS with async concurrency. And you'd want to know if these two pieces of the program have access to the same shared scope/resources. If they do, then you have all the questions that multithreaded languages (Java, C++, etc.) deal with, such as needing cooperative or preemptive locking (mutexes, etc.). That's a lot of extra work, and shouldn't be undertaken lightly.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3890-3891 | Added on Wednesday, December 28, 2016 9:41:45 PM
+
+Alternatively, you'd want to know how these two pieces could "communicate" if they couldn't share scope/resources.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3891-3892 | Added on Wednesday, December 28, 2016 9:42:01 PM
+
+we explore a feature added to the web platform circa HTML5 called "Web Workers."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3892-3893 | Added on Wednesday, December 28, 2016 9:42:22 PM
+
+is a feature of the browser (aka host environment) and actually has almost nothing to do with the JS language itself. That is, JavaScript does not currently have any features that support threaded execution.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3894-3896 | Added on Wednesday, December 28, 2016 9:42:50 PM
+
+But an environment like your browser can easily provide multiple instances of the JavaScript engine, each on its own thread, and let you run a different program in each thread. Each of those separate threaded pieces of your program is called a "(Web) Worker." This type of parallelism is called "task parallelism," as the emphasis is on splitting up chunks of your program to run in parallel.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3897-3900 | Added on Wednesday, December 28, 2016 9:43:20 PM
+
+var w1 = new Worker( "http://some.url.1/mycoolworker.js" ); The URL should point to the location of a JS file
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3900-3901 | Added on Wednesday, December 28, 2016 9:43:33 PM
+
+The browser will then spin up a separate thread and let that file run as an independent program in that thread.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3905-3907 | Added on Wednesday, December 28, 2016 9:44:24 PM
+
+The w1 Worker object is an event listener and trigger, which lets you subscribe to events sent by the Worker as well as send events to the Worker.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3907-3917 | Added on Wednesday, December 28, 2016 9:45:09 PM
+
+Here's how to listen for events (actually, the fixed "message" event): w1.addEventListener( "message", function(evt){    // evt.data} ); And you can send the "message" event to the Worker: w1.postMessage( "something cool to say" ); Inside the Worker, the messaging is totally symmetrical: // "mycoolworker.js"addEventListener( "message", function(evt){    // evt.data} );postMessage( "a really cool reply" );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3925-3927 | Added on Wednesday, December 28, 2016 9:46:41 PM
+
+If you have two or more pages (or multiple tabs with the same page!) in the browser that try to create a Worker from the same file URL, those will actually end up as completely separate Workers.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3932-3932 | Added on Thursday, December 29, 2016 7:20:47 AM
+
+Worker Environment
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3933-3934 | Added on Thursday, December 29, 2016 7:21:13 AM
+
+you cannot access any of its global variables, nor can you access the page's DOM or other resources. Remember: it's a totally separate thread.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3934-3934 | Added on Thursday, December 29, 2016 7:21:37 AM
+
+You can,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3934-3935 | Added on Thursday, December 29, 2016 7:21:48 AM
+
+perform network operations (Ajax, WebSockets) and set timers.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3935-3936 | Added on Thursday, December 29, 2016 7:22:09 AM
+
+the Worker has access to its own copy of several important global variables/features, including navigator, location, JSON, and applicationCache.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3944-3946 | Added on Thursday, December 29, 2016 7:23:15 AM
+
+What are some common uses for Web Workers? Processing intensive math calculations Sorting large data sets Data operations (compression, audio analysis, image pixel manipulations, etc.) High-traffic network communications
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3947-3947 | Added on Thursday, December 29, 2016 7:23:31 AM
+
+Data Transfer
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3947-3949 | Added on Thursday, December 29, 2016 7:23:48 AM
+
+You may notice a common characteristic of most of those uses, which is that they require a large amount of information to be transferred across the barrier between threads using the event mechanism, perhaps in both directions.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3949-3949 | Added on Thursday, December 29, 2016 7:24:05 AM
+
+In the early days of Workers, serializing all data to a string value was the only option.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3950-3950 | Added on Thursday, December 29, 2016 7:24:24 AM
+
+the data was being copied,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3950-3950 | Added on Thursday, December 29, 2016 7:24:36 AM
+
+doubling of memory
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3951-3954 | Added on Thursday, December 29, 2016 7:24:59 AM
+
+If you pass an object, a so-called "Structured Cloning Algorithm" (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/The_structured_clone_algorithm) is used to copy/duplicate the object on the other side.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3956-3958 | Added on Thursday, December 29, 2016 7:25:26 AM
+
+An even better option, especially for larger data sets, is "Transferable Objects" (http://updates.html5rocks.com/2011/12/Transferable-Objects-Lightning-Fast).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3958-3958 | Added on Thursday, December 29, 2016 7:25:50 AM
+
+What happens is that the object's "ownership" is transferred, but the data itself is not moved.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3960-3962 | Added on Thursday, December 29, 2016 7:26:20 AM
+
+any data structure that implements the Transferable interface (https://developer.mozilla.org/en-US/docs/Web/API/Transferable) will automatically be transferred this way (support Firefox & Chrome).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3968-3968 | Added on Thursday, December 29, 2016 7:26:58 AM
+
+Shared Workers
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3969-3973 | Added on Thursday, December 29, 2016 7:27:36 AM
+
+If your site or app allows for loading multiple tabs of the same page (a common feature), you may very well want to reduce the resource usage of their system by preventing duplicate dedicated Workers; the most common limited resource in this respect is a socket network connection, as browsers limit the number of simultaneous connections to a single host. Of course, limiting multiple connections from a client also eases your server resource requirements. In this case, creating a single centralized Worker that all the page instances of your site or app can share is quite useful.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3973-3973 | Added on Thursday, December 29, 2016 7:27:47 AM
+
+That's called a SharedWorker,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3974-3976 | Added on Thursday, December 29, 2016 7:28:04 AM
+
+var w1 = new SharedWorker( "http://some.url.1/mycoolworker.js" );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3977-3978 | Added on Thursday, December 29, 2016 7:28:41 AM
+
+the Worker needs a way to know which program a message comes from. This unique identification is called a "port"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3979-3982 | Added on Thursday, December 29, 2016 7:29:04 AM
+
+w1.port.addEventListener( "message", handleMessages );// ..w1.port.postMessage( "something cool" );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3982-3983 | Added on Thursday, December 29, 2016 7:29:38 AM
+
+Also, the port connection must be initialized, as: w1.port.start();
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3984-3987 | Added on Thursday, December 29, 2016 7:32:25 AM
+
+Inside the shared Worker, an extra event must be handled: "connect". This event provides the port object for that particular connection. The most convenient way to keep multiple connections separate is to use closure (see Scope & Closures title of this series) over the port, as shown next, with the event listening and transmitting for that connection defined inside the handler for the "connect" event:
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3987-3996 | Added on Thursday, December 29, 2016 7:32:36 AM
+
+// inside the shared WorkeraddEventListener( "connect", function(evt){    // the assigned port for this connection    var port = evt.ports[0];    port.addEventListener( "message", function(evt){        // ..        port.postMessage( .. );        // ..    } );    // initialize the port connection    port.start();} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 3999-3999 | Added on Thursday, December 29, 2016 7:32:51 AM
+
+Polyfilling Web Workers
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4004-4007 | Added on Thursday, December 29, 2016 7:33:47 AM
+
+As we detailed in Chapter 1, JS's asynchronicity (not parallelism) comes from the event loop queue, so you can force faked Workers to be asynchronous using timers (setTimeout(..), etc.). Then you just need to provide a polyfill for the Worker API. There are some listed here (https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills#web-workers), but frankly none of them look great.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4014-4016 | Added on Thursday, December 29, 2016 7:34:15 AM
+
+SIMD Single instruction, multiple data (SIMD) is a form of "data parallelism," as contrasted to "task parallelism" with Web Workers, because the emphasis is not really on program logic chunks being parallelized, but rather multiple bits of data being processed in parallel.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4016-4021 | Added on Thursday, December 29, 2016 7:36:09 AM
+
+With SIMD, threads don't provide the parallelism. Instead, modern CPUs provide SIMD capability with "vectors" of numbers -- think: type specialized arrays -- as well as instructions that can operate in parallel across all the numbers; these are low-level operations leveraging instruction-level parallelism. The effort to expose SIMD capability to JavaScript is primarily spearheaded by Intel (https://01.org/node/1495), namely by Mohammad Haghighat (at the time of this writing), in cooperation with Firefox and Chrome teams. SIMD is on an early standards track with a good chance of making it into a future revision of JavaScript, likely in the ES7 timeframe.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4021-4023 | Added on Thursday, December 29, 2016 7:36:35 AM
+
+SIMD JavaScript proposes to expose short vector types and APIs to JS code, which on those SIMD-enabled systems would map the operations directly through to the CPU equivalents, with fallback to non-parallelized operation "shims" on non-SIMD systems.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4024-4034 | Added on Thursday, December 29, 2016 7:36:51 AM
+
+Early proposal forms of the SIMD API at the time of this writing look like this: var v1 = SIMD.float32x4( 3.14159, 21.0, 32.3, 55.55 );var v2 = SIMD.float32x4( 2.1, 3.2, 4.3, 5.4 );var v3 = SIMD.int32x4( 10, 101, 1001, 10001 );var v4 = SIMD.int32x4( 10, 20, 30, 40 );SIMD.float32x4.mul( v1, v2 );    // [ 6.597339, 67.2, 138.89, 299.97 ]SIMD.int32x4.add( v3, v4 );    
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4140-4140 | Added on Thursday, December 29, 2016 7:38:09 AM
+
+Review
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4141-4154 | Added on Thursday, December 29, 2016 7:38:21 AM
+
+The first four chapters of this book are based on the premise that async coding patterns give you the ability to write more performant code, which is generally a very important improvement. But async behavior only gets you so far, because it's still fundamentally bound to a single event loop thread. So in this chapter we've covered several program-level mechanisms for improving performance even further. Web Workers let you run a JS file (aka program) in a separate thread using async events to message between the threads. They're wonderful for offloading long-running or resource-intensive tasks to a different thread, leaving the main UI thread more resposive. SIMD proposes to map CPU-level parallel math operations to JavaScript APIs for high-performance data-parallel operations, like number processing on large data sets. Finally, asm.js describes a small subset of JavaScript that avoids the hard-to-optimize parts of JS (like garbage collection and coercion) and lets the JS engine recognize and run such code through aggressive optimizations. asm.js could be hand authored, but that's extremely tedious and error prone, akin to hand authoring assembly language (hence the name). Instead, the main intent is that asm.js would be a good target for cross-compilation from other highly optimized program languages -- for example, Emscripten (https://github.com/kripken/emscripten/wiki) transpiling C/C++ to JavaScript. While not covered explicitly in this chapter, there are even more radical ideas under very early discussion for JavaScript, including approximations of direct threaded functionality (not just hidden behind data structure APIs). Whether that happens explicitly, or we just see more parallelism creep into JS behind the scenes, the future of more optimized program-level performance in JS looks really promising.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4156-4156 | Added on Thursday, December 29, 2016 7:40:43 AM
+
+Chapter 6: Benchmarking & Tuning
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4165-4165 | Added on Thursday, December 29, 2016 7:44:11 AM
+
+Benchmarking
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4166-4174 | Added on Thursday, December 29, 2016 7:45:52 AM
+
+JS developers, if asked to benchmark the speed (execution time) of a certain operation, would initially go about it something like this: var start = (new Date()).getTime();    // or `Date.now()`// do some operationvar end = (new Date()).getTime();console.log( "Duration:", (end - start) ); Raise your hand if that's roughly what came to your mind. Yep, I thought so. There's a lot wrong with this approach, but don't feel bad; we've all been there.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4187-4187 | Added on Thursday, December 29, 2016 7:47:14 AM
+
+Your "benchmark" is basically useless. And worse, it's dangerous in that it implies false confidence, not just
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4188-4191 | Added on Thursday, December 29, 2016 7:47:39 AM
+
+Repetition "OK," you now say, "Just put a loop around it so the whole test takes longer." If you repeat an operation 100 times, and that whole loop reportedly takes a total of 137ms, then you can just divide by 100 and get an average duration of 1.37ms for each operation, right? Well, not exactly.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4205-4206 | Added on Thursday, December 29, 2016 7:48:17 AM
+
+Benchmark.js
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4207-4207 | Added on Thursday, December 29, 2016 7:48:54 AM
+
+so I'll hand wave around some terms: standard deviation, variance, margin of error.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4209-4211 | Added on Thursday, December 29, 2016 7:49:17 AM
+
+Luckily, smart folks like John-David Dalton and Mathias Bynens do understand these concepts, and wrote a statistically sound benchmarking tool called Benchmark.js (http://benchmarkjs.com/). So I can end the suspense by simply saying: "just use that tool."
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4215-4226 | Added on Thursday, December 29, 2016 7:49:52 AM
+
+But just for quick illustration purposes, here's how you could use Benchmark.js to run a quick performance test: function foo() {    // operation(s) to test}var bench = new Benchmark(    "foo test",                // test name    foo,                    // function to test (just contents)    {        // ..                // optional extra options (see docs)    });bench.hz;                    // number of operations per secondbench.stats.moe;            // margin of errorbench.stats.variance;        // variance across samples// ..
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4233-4236 | Added on Thursday, December 29, 2016 7:50:44 AM
+
+One largely untapped potential use-case for Benchmark.js is to use it in your Dev or QA environments to run automated performance regression tests against critical path parts of your application's JavaScript. Similar to how you might run unit test suites before deployment, you can also compare the performance against previous benchmarks to monitor if you are improving or degrading application performance.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4403-4403 | Added on Friday, December 30, 2016 7:29:45 AM
+
+Writing Good Tests
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4503-4505 | Added on Friday, December 30, 2016 7:32:29 AM
+
+Some commonly cited examples (https://github.com/petkaantonov/bluebird/wiki/Optimization-killers) for v8:
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4552-4555 | Added on Friday, December 30, 2016 7:38:05 AM
+
+Programmers waste enormous amounts of time thinking about, or worrying about, the speed of noncritical parts of their programs, and these attempts at efficiency actually have a strong negative impact when debugging and maintenance are considered. We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil. Yet we should not pass up our opportunities in that critical 3%.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4586-4587 | Added on Friday, December 30, 2016 7:39:16 AM
+
+Tail Call Optimization (TCO)
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4587-4589 | Added on Friday, December 30, 2016 7:39:23 AM
+
+ES6 includes a specific requirement that ventures into the world of performance. It's related to a specific form of optimization that can occur with function calls: tail call optimization.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4589-4590 | Added on Friday, December 30, 2016 7:39:40 AM
+
+a "tail call" is a function call that appears at the "tail" of another function, such that after the call finishes, there's nothing left to do (except perhaps return its result value).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4590-4599 | Added on Friday, December 30, 2016 7:40:25 AM
+
+For example, here's a non-recursive setup with tail calls: function foo(x) {    return x;}function bar(y) {    return foo( y + 1 );    // tail call}function baz() {    return 1 + bar( 40 );    // not tail call}baz();
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4604-4606 | Added on Friday, December 30, 2016 7:40:58 AM
+
+Without getting into too much nitty-gritty detail, calling a new function requires an extra amount of reserved memory to manage the call stack, called a "stack frame." So the preceding snippet would generally require a stack frame for each of baz(), bar(..), and foo(..) all at the same time.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4606-4609 | Added on Friday, December 30, 2016 7:41:18 AM
+
+However, if a TCO-capable engine can realize that the foo(y+1) call is in tail position meaning bar(..) is basically complete, then when calling foo(..), it doesn't need to create a new stack frame, but can instead reuse the existing stack frame from bar(..). That's not only faster, but it also uses less memory.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4610-4611 | Added on Friday, December 30, 2016 7:41:36 AM
+
+With TCO the engine can perform all those calls with a single stack frame!
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4614-4624 | Added on Friday, December 30, 2016 7:42:37 AM
+
+Consider that recursive factorial(..) from before, but rewritten to make it TCO friendly: function factorial(n) {    function fact(n,res) {        if (n < 2) return res;        return fact( n - 1, n * res );    }    return fact( n, 1 );}factorial( 5 );        // 120 This version of factorial(..) is still recursive, but it's also optimizable with TCO, because both inner fact(..) calls are in tail position.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4633-4633 | Added on Friday, December 30, 2016 7:43:39 AM
+
+Review
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4636-4636 | Added on Friday, December 30, 2016 7:43:50 AM
+
+Benchmark.js
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4637-4639 | Added on Friday, December 30, 2016 7:43:56 AM
+
+It's important to get as many test results from as many different environments as possible to eliminate hardware/device bias. jsPerf.com is a fantastic website for crowdsourcing performance benchmark test runs.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4646-4646 | Added on Friday, December 30, 2016 7:44:28 AM
+
+Appendix A: asynquence Library
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4649-4650 | Added on Friday, December 30, 2016 7:44:54 AM
+
+I referenced my own asynchronous library asynquence (http://github.com/getify/asynquence) -- "async" + "sequence" = "asynquence"
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4661-4662 | Added on Friday, December 30, 2016 7:46:12 AM
+
+Sequences, Abstraction Design
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4663-4665 | Added on Friday, December 30, 2016 7:46:45 AM
+
+fundamental abstraction: any series of steps for a task, whether they separately are synchronous or asynchronous, can be collectively thought of as a "sequence". In other words, a sequence is a container that represents a task, and is comprised of individual (potentially async) steps to complete that task.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4665-4665 | Added on Friday, December 30, 2016 7:49:52 AM
+
+Each step in the sequence is controlled under the covers by a Promise
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4665-4666 | Added on Friday, December 30, 2016 7:50:02 AM
+
+every step you add to a sequence implicitly creates a Promise that is wired to the previous end of the sequence.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4668-4668 | Added on Friday, December 30, 2016 7:50:15 AM
+
+meaning that step 2 always comes after step 1 finishes,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4668-4669 | Added on Friday, December 30, 2016 7:50:55 AM
+
+a new sequence can be forked off an existing sequence,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4669-4670 | Added on Friday, December 30, 2016 7:51:05 AM
+
+Sequences can also be combined in various ways, including having one sequence subsumed by another
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4675-4675 | Added on Friday, December 30, 2016 7:52:09 AM
+
+Promises themselves should never be able to be canceled, as this violates a fundamental design imperative: external immutability.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4676-4676 | Added on Friday, December 30, 2016 7:52:15 AM
+
+But sequences have no such immutability design principle,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4676-4677 | Added on Friday, December 30, 2016 7:52:25 AM
+
+mostly because sequences are not passed around as future-value containers that need immutable value semantics.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4677-4677 | Added on Friday, December 30, 2016 7:52:35 AM
+
+the proper level of abstraction to handle abort/cancel behavior.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4681-4682 | Added on Friday, December 30, 2016 7:53:22 AM
+
+Abstractions are meant to reduce boilerplate and tedium,
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4682-4684 | Added on Friday, December 30, 2016 7:53:39 AM
+
+With Promises, your focus is on the individual step, and there's little assumption that you will keep the chain going. With sequences, the opposite approach is taken, assuming the sequence will keep having more steps added indefinitely.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4689-4691 | Added on Friday, December 30, 2016 7:54:33 AM
+
+But if you abstract your thinking to a sequence, and consider a step as a wrapper around a Promise, that step wrapper can hide such details, freeing you to think about the flow control in the most sensible way without being bothered by the details.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4691-4692 | Added on Friday, December 30, 2016 7:54:51 AM
+
+Second, and perhaps more importantly, thinking of async flow control in terms of steps in a sequence allows you to abstract out the details of what types of asynchronicity are involved with each individual step.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4702-4704 | Added on Friday, December 30, 2016 7:56:07 AM
+
+The takeaway is that sequences are a more powerful and sensible abstraction for complex asynchrony than just Promises (Promise chains) or just generators, and asynquence is designed to express that abstraction with just the right level of sugar to make async programming more understandable and more enjoyable.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4713-4713 | Added on Friday, December 30, 2016 9:44:32 PM
+
+Steps
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4718-4734 | Added on Friday, December 30, 2016 9:45:45 PM
+
+ASQ(    // step 1    function(done){        setTimeout( function(){            done( "Hello" );        }, 100 );    },    // step 2    function(done,greeting) {        setTimeout( function(){            done( greeting + " World" );        }, 100 );    })// step 3.then( function(done,msg){    setTimeout( function(){        done( msg.toUpperCase() );    }, 100 );} )// step 4.then( function(done,msg){    console.log( msg );            // HELLO WORLD} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4738-4738 | Added on Friday, December 30, 2016 9:46:07 PM
+
+with asynquence, all you need to do is call the continuation callback
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4739-4753 | Added on Friday, December 30, 2016 9:46:24 PM
+
+Each step defined by then(..) is assumed to be asynchronous. If you have a step that's synchronous, you can either just call done(..) right away, or you can use the simpler val(..) step helper: // step 1 (sync)ASQ( function(done){    done( "Hello" );    // manually synchronous} )// step 2 (sync).val( function(greeting){    return greeting + " World";} )// step 3 (async).then( function(done,msg){    setTimeout( function(){        done( msg.toUpperCase() );    }, 100 );} )// step 4 (sync).val( function(msg){    console.log( msg );} );
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4814-4814 | Added on Friday, December 30, 2016 9:49:03 PM
+
+Parallel Steps
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4816-4816 | Added on Friday, December 30, 2016 9:49:16 PM
+
+A step in a sequence in which multiple substeps are processing concurrently is called a gate(..)
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4817-4817 | Added on Friday, December 30, 2016 9:49:27 PM
+
+and is directly symmetric to native Promise.all([..]).
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4704-4705 | Added on Saturday, December 31, 2016 7:16:31 AM
+
+asynquence API
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4705-4705 | Added on Saturday, December 31, 2016 7:17:13 AM
+
+the way you create a sequence
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4706-4706 | Added on Saturday, December 31, 2016 7:17:18 AM
+
+is with the ASQ(..) function.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4713-4713 | Added on Saturday, December 31, 2016 7:17:56 AM
+
+http://github.com/getify/asynquence
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4755-4756 | Added on Saturday, December 31, 2016 7:18:48 AM
+
+Think of val(..) as representing a synchronous "value-only" step, which is useful for synchronous value operations, logging, and the like.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4756-4756 | Added on Saturday, December 31, 2016 7:18:56 AM
+
+Errors
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4757-4759 | Added on Saturday, December 31, 2016 7:19:17 AM
+
+With Promises, each individual Promise (step) in a chain can have its own independent error, and each subsequent step has the ability to handle the error or not. The main reason for this semantic comes (again) from the focus on individual Promises rather than on the chain (sequence) as a whole.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4772-4787 | Added on Saturday, December 31, 2016 7:21:20 AM
+
+Just like with Promises, all JS exceptions become sequence errors, or you can programmatically signal a sequence error: var sq = ASQ( function(done){    setTimeout( function(){        // signal an error for the sequence        done.fail( "Oops" );    }, 100 );} ).then( function(done){    // will never get here} ).or( function(err){    console.log( err );            // Oops} ).then( function(done){    // won't get here either} );// latersq.or( function(err){    console.log( err );            // Oops} ); Another
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4772-4793 | Added on Saturday, December 31, 2016 7:22:19 AM
+
+Just like with Promises, all JS exceptions become sequence errors, or you can programmatically signal a sequence error: var sq = ASQ( function(done){    setTimeout( function(){        // signal an error for the sequence        done.fail( "Oops" );    }, 100 );} ).then( function(done){    // will never get here} ).or( function(err){    console.log( err );            // Oops} ).then( function(done){    // won't get here either} );// latersq.or( function(err){    console.log( err );            // Oops} ); Another really important difference with error handling in asynquence compared to native Promises is the default behavior of "unhandled exceptions". As we discussed at length in Chapter 3, a rejected Promise without a registered rejection handler will just silently hold (aka swallow) the error; you have to remember to always end a chain with a final catch(..). In asynquence, the assumption is reversed. If an error occurs on a sequence, and it at that moment has no error handlers registered, the error is reported to the console. In other words, unhandled rejections are by default always reported so as not to be swallowed and missed.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4819-4855 | Added on Saturday, December 31, 2016 7:23:39 AM
+
+Consider: ASQ( function(done){    setTimeout( done, 100 );} ).gate(    function(done){        setTimeout( function(){            done( "Hello" );        }, 100 );    },    function(done){        setTimeout( function(){            done( "World", "!" );        }, 100 );    }).val( function(msg1,msg2){    console.log( msg1 );    // Hello    console.log( msg2 );    // [ "World", "!" ]} ); For illustration, let's compare that example to native Promises: new Promise( function(resolve,reject){    setTimeout( resolve, 100 );} ).then( function(){    return Promise.all( [        new Promise( function(resolve,reject){            setTimeout( function(){                resolve( "Hello" );            }, 100 );        } ),        new Promise( function(resolve,reject){            setTimeout( function(){                // note: we need a [ ] array here                resolve( [ "World", "!" ] );            }, 100 );        } )    ] );} ).then( function(msgs){    console.log( msgs[0] );    // Hello    console.log( msgs[1] );    // [ "World", "!" ]} ); Yuck. Promises require a lot more boilerplate overhead to express the same asynchronous flow control.
+==========
+You Don't Know JS: Async & Performance (Kyle Simpson)
+- Your Highlight on Location 4855-4856 | Added on Saturday, December 31, 2016 7:23:51 AM
+
+That's a great illustration of why the asynquence API and abstraction make dealing with Promise steps a lot nicer.
+==========
