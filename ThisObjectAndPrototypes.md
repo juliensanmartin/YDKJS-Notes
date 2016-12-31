@@ -832,139 +832,79 @@ XYZ.outputTaskDetails = function() {
 // ABC ... = ...
 ```
 
-In this code, Task and XYZ are not classes (or functions), they’re just objects. XYZ is set up via Object.create(..) to [[Prototype]]- delegate to the Task object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 116-116 | Added on Saturday, December 3, 2016 12:34:57 PM
+In this code, Task and XYZ are not classes (or functions), they’re just objects. XYZ is set up via Object.create(..) to [[Prototype]]- delegate to the Task object see Chapter 5). As compared to class orientation (aka object orientation), I call this style of code OLOO (objects linked to other objects). All we really care about is that the XYZ object delegates to the Task object (as does the ABC object
 
-Here’s some simple code to suggest how you accomplish that: Task = { setID: function(ID) { this.id = ID; }, outputID: function() { console.log( this.id ); } }; // make `XYZ` delegate to `Task` XYZ = Object.create( Task ); XYZ.prepareTask = function(ID,Label) { this.setID( ID ); this.label = Label; }; XYZ.outputTaskDetails = function() { this.outputID(); console.log( this.label ); }; // ABC = Object.create( Task ); // ABC ... = ... In this code, Task and XYZ are not classes (or functions), they’re just objects. XYZ is set up via Object.create(..) to [[Prototype]]- delegate to the Task object (see Chapter 5). As compared to class orientation (aka object orientation), I call this style of code OLOO (objects linked to other objects). All we really care about is that the XYZ object delegates to the Task object (as does the ABC object
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 117-117 | Added on Saturday, December 3, 2016 12:36:30 PM
+1. Both the id and label data members from the previous class example are data properties directly on XYZ (neither is on Task). In general, with [[Prototype]] delegation, you want state to be on the delegators (XYZ, ABC), not on the delegate.
 
-1. Both the id and label data members from the previous class ex‐ ample are data properties directly on XYZ (neither is on Task). In general, with [[Prototype]] delegation, you want state to be on the delegators (XYZ, ABC), not on the delegate (Task
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 117-117 | Added on Saturday, December 3, 2016 12:37:07 PM
+2. With the class design pattern, we intentionally named output Task the same on both parent (Task) and child (XYZ), so that we could take advantage of overriding (polymorphism). In behavior delegation, we do the opposite: we avoid if at all possible naming things the same at different levels of the [[Prototype]] chain called shadowing—see Chapter 5), because having those name collisions creates awkward/brittle syntax to disambiguate references (see Chapter 4), and we want to avoid that if we can.
 
-. With the class design pattern, we intentionally named output Task the same on both parent (Task) and child (XYZ), so that we could take advantage of overriding (polymorphism). In behavior delegation, we do the opposite: we avoid if at all possible naming things the same at different levels of the [[Prototype]] chain
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 117-117 | Added on Saturday, December 3, 2016 12:37:22 PM
+This design pattern calls for less use of general method names that are prone to overriding and instead more use of descriptive method names, specific to the type of behavior each object is doing. This can actually create easier to understand/maintain code, because the names of methods (not only at the definition location but strewn throughout other code) are more obvious (self documenting).
 
-called shadowing—see Chapter 5), because having those name collisions creates awkward/brittle syntax to disambiguate refer‐ ences (see Chapter 4), and we want to avoid that if we can.
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 117-117 | Added on Saturday, December 3, 2016 12:37:45 PM
-
-This design pattern calls for less use of general method names that are prone to overriding and instead more use of descriptive meth‐ od names, specific to the type of behavior each object is doing. This can actually create easier to understand/maintain code, because the names of methods (not only at the definition location but strewn throughout other code) are more obvious (selfdocumenting).
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 117-117 | Added on Saturday, December 3, 2016 12:38:20 PM
-
-this.setID(ID); inside of a method on the XYZ object first looks on XYZ for setID(..), but since it doesn’t find a method of that name on XYZ, [[Prototype]] delegation means it can follow the link to Task to look for setID(..), which it of course finds. More‐ over, because of implicit call-site this binding rules (see Chap‐ ter 2), when setID(..) runs, even though the method was found on Task, the this binding for that function call is XYZ, exactly
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 117-117 | Added on Saturday, December 3, 2016 12:38:35 PM
+this.setID(ID); inside of a method on the XYZ object first looks on XYZ for setID(..), but since it doesn’t find a method of that name on XYZ, [[Prototype]] delegation means it can follow the link to Task to look for setID(..), which it of course finds. Moreover, because of implicit call-site this binding rules (see Chapter 2), when setID(..) runs, even though the method was found on Task, the this binding for that function call is XYZ, exactly
 
 In other words, the general utility methods that exist on Task are available to us while interacting with XYZ, because XYZ can delegate to Task
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 118-118 | Added on Saturday, December 3, 2016 12:39:25 PM
 
-This is an extremely powerful design pattern, very distinct from the ideas of parent and child classes, inheritance, polymorphism, etc. Rather than organizing the objects in your mind vertically, with pa‐ rents flowing down to children, think of objects side by side, as peers, with any direction of delegation links between the objects as necessary
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 121-121 | Added on Sunday, December 4, 2016 6:20:49 PM
+This is an extremely powerful design pattern, very distinct from the ideas of parent and child classes, inheritance, polymorphism, etc. Rather than organizing the objects in your mind vertically, with parents flowing down to children, think of objects side by side, as peers, with any direction of delegation links between the objects as necessary
 
-OO style: function Foo(who) { this.me = who; } Foo.prototype.identify = function() {
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 121-121 | Added on Sunday, December 4, 2016 6:20:59 PM
+OO style:
+```JavaScript
+function Foo(who) {
+  this.me = who;
+}
 
-return "I am " + this.me; }; function Bar(who) { Foo.call( this, who ); } Bar.prototype = Object.create( Foo.prototype ); Bar.prototype.speak = function() { alert( "Hello, " + this.identify() + "." ); }; var b1 = new Bar( "b1" ); var b2 = new Bar( "b2" ); b1.speak(); b2.speak(
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 121-121 | Added on Sunday, December 4, 2016 6:21:13 PM
+Foo.prototype.identify = function() {
+  return "I am " + this.me;
+};
 
-Now, let’s implement the exact same functionality using OLOO-style code: Foo = { init: function(who) { this.me = who; }, identify: function() { return "I am " + this.me; }
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 122-122 | Added on Sunday, December 4, 2016 6:21:21 PM
+function Bar(who) {
+  Foo.call( this, who );
+}
 
-}; Bar = Object.create( Foo ); Bar.speak = function() { alert( "Hello, " + this.identify() + "." ); }; var b1 = Object.create( Bar ); b1.init( "b1" ); var b2 = Object.create( Bar ); b2.init( "b2" ); b1.speak(); b2.speak
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 122-122 | Added on Sunday, December 4, 2016 6:21:32 PM
+Bar.prototype = Object.create( Foo.prototype );
+Bar.prototype.speak = function() {
+  alert( "Hello, " + this.identify() + "." );
+};
 
-We take exactly the same advantage of [[Prototype]] delegation from b1 to Bar to Foo as we did in the previous snippet between b1,
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 122-122 | Added on Sunday, December 4, 2016 6:21:39 PM
+var b1 = new Bar( "b1" );
+var b2 = new Bar( "b2" );
+b1.speak();
+b2.speak();
+```
 
-Bar.pro totype, and Foo.prototype. We still have the same three objects linked together
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Bookmark on page 123 | Added on Sunday, December 4, 2016 6:23:39 PM
+Now, let’s implement the exact same functionality using OLOO-style code:
+```JavaScript
+Foo = {
+  init: function(who) {
+    this.me = who;
+  },
+  identify: function() {
+    return "I am " + this.me;
+  }
+};
 
+Bar = Object.create( Foo );
+Bar.speak = function() {
+  alert( "Hello, " + this.identify() + "." );
+};
 
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Bookmark on page 124 | Added on Sunday, December 4, 2016 6:25:20 PM
+var b1 = Object.create( Bar );
+b1.init( "b1" );
+var b2 = Object.create( Bar );
+b2.init( "b2" );
+b1.speak();
+b2.speak();
+```
 
+We take exactly the same advantage of [[Prototype]] delegation from b1 to Bar to Foo as we did in the previous snippet between b1, Bar.prototype, and Foo.prototype. We still have the same three objects linked together because OLOO-style code embraces the fact that the only thing we ever really cared about was the objects linked to other objects
 
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Bookmark on page 125 | Added on Sunday, December 4, 2016 6:27:13 PM
-
-
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 125-125 | Added on Sunday, December 4, 2016 6:27:35 PM
-
-because OLOO-style code embraces the fact that the only thing we ever really cared about was the objects linked to other objects
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 128-128 | Added on Sunday, December 4, 2016 6:33:45 PM
-
-Whether you use the classic prototypal syntax or the new ES6 sugar, you’ve still made a choice to model the problem domain (UI widgets) with “classes.” And as the previous few chapters try to demonstrate, this choice in JavaScript is opting you into extra headaches and mental tax
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 130-130 | Added on Sunday, December 4, 2016 6:36:59 PM
-
-With this OLOO-style approach, we don’t think of Widget as a parent and Button as a child. Rather, Widget is just an object and is sort of a utility collection that any specific type of widget might want to delegate to, and Button is also just a standalone object (with a delegation link to Widget, of course
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 130-130 | Added on Sunday, December 4, 2016 6:37:20 PM
+Whether you use the classic prototypal syntax or the new ES6 sugar, you’ve still made a choice to model the problem domain (UI widgets) with “classes.” And as the previous few chapters try to demonstrate, this choice in JavaScript is opting you into extra headaches and mental tax. With this OLOO-style approach, we don’t think of Widget as a parent and Button as a child. Rather, Widget is just an object and is sort of a utility collection that any specific type of widget might want to delegate to, and Button is also just a standalone object (with a delegation link to Widget, of course.
 
 From a design pattern perspective, we didn’t share the same method name render(..) in both objects, the way classes suggest, but instead we chose different names (insert(..) and build(..)) that were more descriptive of what task each does specifically. The initialization methods are called init(..) and setup(..), respectively, for the same reasons
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 130-130 | Added on Sunday, December 4, 2016 6:38:03 PM
 
 Syntactically, we also don’t have any constructors, .prototype, or new present, as they are, in fact, just unnecessary cruft
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 130-130 | Added on Sunday, December 4, 2016 6:38:47 PM
 
-Now, if you’re paying close attention, you may notice that what was previously just one call (var btn1 = new Button(..)) is now two calls (var btn1 = Object.create(Button) and btn1.setup(..)). Initially this may seem like a drawback (more code). However, even this is something that’s a pro of OLOO-style code as compared to classical prototype style code. How? With class constructors, you are forced (not really, but it is strongly suggested) to do both construction and initialization in the same step. However, there are many cases where being able to do these two steps
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 130-130 | Added on Sunday, December 4, 2016 6:38:55 PM
+Now, if you’re paying close attention, you may notice that what was previously just one call (var btn1 = new Button(..)) is now two calls (var btn1 = Object.create(Button) and btn1.setup(..)). Initially this may seem like a drawback (more code). However, even this is something that’s a pro of OLOO-style code as compared to classical prototype style code. How? With class constructors, you are forced (not really, but it is strongly suggested) to do both construction and initialization in the same step. However, there are many cases where being able to do these two steps separately (as you do with OLOO!) is more flexible. For example, let’s say you create all your instances in a pool at the beginning of your program, but you wait to initialize them with a specific setup when they are pulled from the pool and used. We showed the two calls happening right next to each other, but of course they can happen at very different times and in very different parts of our code, as needed
 
-separately (as you do with OLOO!) is more flexible. For example, let’s say you create all your instances in a pool at the beginning of your program, but you wait to initialize them with a specific setup when they are pulled from the pool and used. We showed the two calls happening right next to each other, but of course they can happen at very different times and in very different parts of our code, as needed
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 131-131 | Added on Sunday, December 4, 2016 6:39:33 PM
+OLOO better supports the principle of separation of concerns, where creation and initialization are not necessarily conflated into the same operation.
 
-OLOO better supports the principle of separation of concerns, where creation and initialization are not necessarily conflated into the same operation
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 145-145 | Added on Monday, December 5, 2016 7:35:13 AM
-
-Chapter 4 points out that classes in traditional class-oriented languages actually pro‐ duce a copy action from parent to child to instance, whereas in [[Pro totype]], the action is not a copy, but rather the opposite—a delega
-==========
-You Don't Know JS - This _ Object Prototypes
-- Your Highlight on page 145-145 | Added on Monday, December 5, 2016 7:35:20 AM
-
-tion link
+Chapter 4 points out that classes in traditional class-oriented languages actually produce a copy action from parent to child to instance, whereas in [[Prototype]], the action is not a copy, but rather the opposite—a delegation link
