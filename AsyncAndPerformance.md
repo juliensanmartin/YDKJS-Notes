@@ -899,80 +899,121 @@ x; // 3
 it.next(); // x: 3
 ```
 
-let's walk through the behavior flow: The it = foo() operation does not execute the *foo() generator yet, but it merely constructs an iterator that will control its execution. More on iterators in a bit. The first it.next() starts the *foo() generator, and runs the x++ on the first line of *foo(). *foo() pauses at the yield statement, at which point that first it.next() call finishes. At the moment, *foo() is still running and active, but it's in a paused state. We inspect the value of x, and it's now 2. We call bar(), which increments x again with x++. We inspect the value of x again, and it's now 3. The final it.next() call resumes the *foo() generator from where it was paused, and runs the console.log(..) statement, which uses the current value of x of 3.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2468-2469 | Added on Thursday, December 22, 2016 7:40:46 AM
+let's walk through the behavior flow: The it = foo() operation does not execute the `*foo()` generator yet, but it merely constructs an iterator that will control its execution. More on iterators in a bit. The first it.next() starts the `*foo()` generator, and runs the x++ on the first line of `*foo()`. `*foo()` pauses at the yield statement, at which point that first it.next() call finishes. At the moment, `*foo()` is still running and active, but it's in a paused state. We inspect the value of x, and it's now 2. We call bar(), which increments x again with x++. We inspect the value of x again, and it's now 3. The final it.next() call resumes the `*foo()` generator from where it was paused, and runs the console.log(..) statement, which uses the current value of x of 3.
 
 So, a generator is a special kind of function that can start and stop one or more times, and doesn't necessarily ever have to finish.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2491-2504 | Added on Thursday, December 22, 2016 7:45:20 AM
 
-Consider: function *foo(x) {    var y = x * (yield);    return y;}var it = foo( 6 );// start `foo(..)`it.next();var res = it.next( 7 );res.value;        // 42 First, we pass in 6 as the parameter x. Then we call it.next(), and it starts up *foo(..). Inside *foo(..), the var y = x .. statement starts to be processed, but then it runs across a yield expression. At that point, it pauses *foo(..) (in the middle of the assignment statement!), and essentially requests the calling code to provide a result value for the yield expression. Next, we call it.next( 7 ), which is passing the 7 value back in to be that result of the paused yield expression. So, at this point, the assignment statement is essentially var y = 6 * 7. Now, return y returns that 42 value back as the result of the it.next( 7 ) call.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2509-2510 | Added on Thursday, December 22, 2016 7:48:46 AM
+Consider:
+```JavaScript
+function *foo(x) {    
+  var y = x * (yield);    
+  return y;
+}
+var it = foo( 6 );
+// start `foo(..)`
+it.next();
+var res = it.next( 7 );
+res.value;        
+// 42
+```
 
-Tale of Two Questions
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2511-2517 | Added on Thursday, December 22, 2016 7:48:59 AM
+First, we pass in 6 as the parameter x. Then we call it.next(), and it starts up `*foo(..)`. Inside `*foo(..)`, the var y = x .. statement starts to be processed, but then it runs across a yield expression. At that point, it pauses `*foo(..)` (in the middle of the assignment statement!), and essentially requests the calling code to provide a result value for the yield expression. Next, we call it.next( 7 ), which is passing the 7 value back in to be that result of the paused yield expression. So, at this point, the assignment statement is essentially var y = 6 * 7. Now, return y returns that 42 value back as the result of the it.next( 7 ) call.
 
-Consider only the generator code: var y = x * (yield);return y; This first yield is basically asking a question: "What value should I insert here?" Who's going to answer that question? Well, the first next() has already run to get the generator up to this point, so obviously it can't answer the question. So, the second next(..) call must answer the question posed by the first yield.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2518-2518 | Added on Thursday, December 22, 2016 7:49:16 AM
+###Tale of Two Questions
+
+Consider only the generator code:
+```JavaScript
+var y = x * (yield);
+return y;
+```
+
+This first yield is basically asking a question: "What value should I insert here?" Who's going to answer that question? Well, the first next() has already run to get the generator up to this point, so obviously it can't answer the question. So, the second next(..) call must answer the question posed by the first yield.
 
 But let's flip our perspective. Let's look at it not from the generator's point of view, but from the iterator's point of view.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2519-2530 | Added on Thursday, December 22, 2016 7:50:07 AM
 
-To properly illustrate this perspective, we also need to explain that messages can go in both directions -- yield .. as an expression can send out messages in response to next(..) calls, and next(..) can send values to a paused yield expression. Consider this slightly adjusted code: function *foo(x) {    var y = x * (yield "Hello");    // <-- yield a value!    return y;}var it = foo( 6 );var res = it.next();    // first `next()`, don't pass anythingres.value;                // "Hello"res = it.next( 7 );        // pass `7` to waiting `yield`res.value;                // 42
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2531-2532 | Added on Thursday, December 22, 2016 7:51:08 AM
+To properly illustrate this perspective, we also need to explain that messages can go in both directions -- yield .. as an expression can send out messages in response to next(..) calls, and next(..) can send values to a paused yield expression. Consider this slightly adjusted code:
+```JavaScript
+function *foo(x) {    
+  var y = x * (yield "Hello");    // <-- yield a value!    
+  return y;
+}
+var it = foo( 6 );
+var res = it.next();    // first `next()`, don't pass anything
+res.value;  // "Hello"
+res = it.next( 7 ); // pass `7` to waiting `yield`
+res.value; // 42
+```
 
 yield .. and next(..) pair together as a two-way message passing system during the execution of the generator.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2542-2544 | Added on Thursday, December 22, 2016 7:52:06 AM
 
-The first next() call (with nothing passed to it) is basically asking a question: "What next value does the *foo(..) generator have to give me?" And who answers this question? The first yield "hello" expression.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2657-2672 | Added on Monday, December 26, 2016 8:13:56 AM
+The first next() call (with nothing passed to it) is basically asking a question: "What next value does the `*foo(..)` generator have to give me?" And who answers this question? The first yield "hello" expression.
 
-Producers and Iterators Imagine you're producing a series of values where each value has a definable relationship to the previous value. To do this, you're going to need a stateful producer that remembers the last value it gave out. You can implement something like that straightforwardly using a function closure (see the Scope & Closures title of this series): var gimmeSomething = (function(){    var nextVal;    return function(){        if (nextVal === undefined) {            nextVal = 1;        }        else {            nextVal = (3 * nextVal) + 6;        }        return nextVal;    };})();gimmeSomething();        // 1gimmeSomething();        // 9gimmeSomething();        // 33gimmeSomething();        // 105
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2677-2679 | Added on Monday, December 26, 2016 8:14:39 AM
+Producers and Iterators Imagine you're producing a series of values where each value has a definable relationship to the previous value. To do this, you're going to need a stateful producer that remembers the last value it gave out. You can implement something like that straightforwardly using a function closure (see the Scope & Closures title of this series):
+```JavaScript
+var gimmeSomething = (function(){    
+  var nextVal;    
+  return function(){        
+    if (nextVal === undefined) {            
+      nextVal = 1;        
+    }        
+    else {            
+      nextVal = (3 * nextVal) + 6;        
+    }        
+    return nextVal;    
+  };
+})();
+
+gimmeSomething();        // 1
+gimmeSomething();        // 9
+gimmeSomething();        // 33
+gimmeSomething();        // 105
+```
 
 In fact, this task is a very common design pattern, usually solved by iterators. An iterator is a well-defined interface for stepping through a series of values from a producer. The JS interface for iterators, as it is in most languages, is to call next() each time you want the next value from the producer.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2679-2698 | Added on Monday, December 26, 2016 8:15:10 AM
 
-We could implement the standard iterator interface for our number series producer: var something = (function(){    var nextVal;    return {        // needed for `for..of` loops        [Symbol.iterator]: function(){ return this; },        // standard iterator interface method        next: function(){            if (nextVal === undefined) {                nextVal = 1;            }            else {                nextVal = (3 * nextVal) + 6;            }            return { done:false, value:nextVal };        }    };})();something.next().value;        // 1something.next().value;        // 9something.next().value;        // 33something.next().value;        // 105 Note:
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2679-2702 | Added on Monday, December 26, 2016 8:16:18 AM
+We could implement the standard iterator interface for our number series producer:
+```JavaScript
+var something = (function(){    
+  var nextVal;    
+  return {        // needed for `for..of` loops        
+    [Symbol.iterator]: function(){
+      return this;
+    },        
+    // standard iterator interface method        
+    next: function(){            
+      if (nextVal === undefined) {                
+        nextVal = 1;            
+      }            
+      else {                
+        nextVal = (3 * nextVal) + 6;            
+      }            
+      return {
+        done:false,
+        value:nextVal
+      };        
+    }    
+  };
+})();
 
-We could implement the standard iterator interface for our number series producer: var something = (function(){    var nextVal;    return {        // needed for `for..of` loops        [Symbol.iterator]: function(){ return this; },        // standard iterator interface method        next: function(){            if (nextVal === undefined) {                nextVal = 1;            }            else {                nextVal = (3 * nextVal) + 6;            }            return { done:false, value:nextVal };        }    };})();something.next().value;        // 1something.next().value;        // 9something.next().value;        // 33something.next().value;        // 105 Note: We'll explain why we need the [Symbol.iterator]: .. part of this code snippet in the "Iterables" section. Syntactically though, two ES6 features are at play. First, the [ .. ] syntax is called a computed property name (see the this & Object Prototypes title of this series). It's a way in an object literal definition to specify an expression and use the result of that expression as the name for the property. Next, Symbol.iterator is one of ES6's predefined special Symbol values (see the ES6 & Beyond title of this book series).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2702-2704 | Added on Monday, December 26, 2016 8:17:29 AM
+something.next().value;        // 1
+something.next().value;        // 9
+something.next().value;        // 33
+something.next().value;        // 105
+```
+Note: We'll explain why we need the [Symbol.iterator]: .. part of this code snippet in the "Iterables" section. Syntactically though, two ES6 features are at play. First, the [ .. ] syntax is called a computed property name (see the this & Object Prototypes title of this series). It's a way in an object literal definition to specify an expression and use the result of that expression as the name for the property. Next, Symbol.iterator is one of ES6's predefined special Symbol values (see the ES6 & Beyond title of this book series).
 
 The next() call returns an object with two properties: done is a boolean value signaling the iterator's complete status; value holds the iteration value.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2704-2710 | Added on Monday, December 26, 2016 8:17:45 AM
 
-ES6 also adds the for..of loop, which means that a standard iterator can automatically be consumed with native loop syntax: for (var v of something) {    console.log( v );    // don't let the loop run forever!    if (v > 500) {        break;    }}// 1 9 33 105 321 969
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2714-2715 | Added on Monday, December 26, 2016 8:18:13 AM
+ES6 also adds the for..of loop, which means that a standard iterator can automatically be consumed with native loop syntax:
+```JavaScript
+for (var v of something) {    
+  console.log( v );    
+  // don't let the loop run forever!    
+  if (v > 500) {        
+    break;    
+  }
+}// 1 9 33 105 321 969
+```
 
 The for..of loop automatically calls next() for each iteration -- it doesn't pass any values in to the next() -- and it will automatically terminate on receiving a done:true. It's quite handy for looping over a set of data.
 ==========
