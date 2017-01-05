@@ -1243,56 +1243,66 @@ The yield-pause nature of generators means that not only do we get synchronous-l
 we lost something very important: the trustability and composability of Promises
 
 The best of all worlds in ES6 is to combine generators (synchronous-looking async code) with Promises (trustable and composable).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2947-2956 | Added on Monday, December 26, 2016 8:55:41 AM
 
-function foo(x,y) {    return request(        "http://some.url.1/?x=" + x + "&y=" + y    );}foo( 11, 31 ).then(    function(text){        console.log( text );    },    function(err){        console.error( err );    });
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2956-2958 | Added on Monday, December 26, 2016 8:56:07 AM
+```JavaScript
+function foo(x,y) {    
+  return request(        
+    "http://some.url.1/?x=" + x + "&y=" + y    
+  );
+}
+
+foo( 11, 31 ).then(    
+  function(text){        
+    console.log( text );    
+  },    
+  function(err){        
+    console.error( err );    
+  }
+);
+```
 
 In our earlier generator code for the running Ajax example, foo(..) returned nothing (undefined), and our iterator control code didn't care about that yielded value.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2958-2960 | Added on Monday, December 26, 2016 8:56:31 AM
 
 But here the Promise-aware foo(..) returns a promise after making the Ajax call. That suggests that we could construct a promise with foo(..) and then yield it from the generator, and then the iterator control code would receive that promise.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2960-2962 | Added on Monday, December 26, 2016 8:57:00 AM
 
 But what should the iterator do with the promise? It should listen for the promise to resolve (fulfillment or rejection), and then either resume the generator with the fulfillment message or throw an error into the generator with the rejection reason.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2962-2963 | Added on Monday, December 26, 2016 8:57:16 AM
 
 it's so important.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2963-2964 | Added on Monday, December 26, 2016 8:57:34 AM
 
 The natural way to get the most out of Promises and generators is to yield a Promise, and wire that Promise to control the generator's iterator.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2965-2975 | Added on Monday, December 26, 2016 8:58:02 AM
 
-function foo(x,y) {    return request(        "http://some.url.1/?x=" + x + "&y=" + y    );}function *main() {    try {        var text = yield foo( 11, 31 );        console.log( text );    }    catch (err) {        console.error( err );    }}
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2975-2977 | Added on Monday, December 26, 2016 8:58:41 AM
+```JavaScript
+function foo(x,y) {    
+  return request(        
+    "http://some.url.1/?x=" + x + "&y=" + y    
+  );
+}
+function *main() {    
+  try {        
+    var text = yield foo( 11, 31 );        
+    console.log( text );    
+  }    
+  catch (err) {        
+    console.error( err );    
+  }
+}
+```
 
-The most powerful revelation in this refactor is that the code inside *main() did not have to change at all! Inside the generator, whatever values are yielded out is just an opaque implementation detail,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2978-2978 | Added on Monday, December 26, 2016 8:59:18 AM
+The most powerful revelation in this refactor is that the code inside `*main()` did not have to change at all! Inside the generator, whatever values are yielded out is just an opaque implementation detail,
 
-But how are we going to run *main() now?
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2980-2985 | Added on Monday, December 26, 2016 8:59:29 AM
-
-var it = main();var p = it.next().value;// wait for the `p` promise to resolvep.then(    function(text){        it.next( text );    },    function(err){        it.throw( err );    });
+But how are we going to run `*main()` now?
+```JavaScript
+var it = main();
+var p = it.next().value;// wait for the `p` promise to resolve
+p.then(    
+  function(text){        
+    it.next( text );    
+  },    
+  function(err){        
+    it.throw( err );    
+  }
+);
+```
 ==========
 You Don't Know JS: Async & Performance (Kyle Simpson)
 - Your Highlight on Location 2995-2995 | Added on Monday, December 26, 2016 9:00:38 AM
