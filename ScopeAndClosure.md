@@ -168,6 +168,27 @@ btn.addEventListener( "click", function click(evt){
 ```
 Declaring explicit blocks for variables to locally bind to is a powerful tool that you can add to your code toolbox.
 
+### let
+
+Fortunately, ES6 changes that, and introduces a new keyword let which sits alongside var as another way to declare variables.
+
+The let keyword attaches the variable declaration to the scope of whatever block (commonly a { .. } pair) it's contained in. In other words, let implicitly hijacks any block's scope for its variable declaration.
+
+```JavaScript
+var foo = true;
+
+if (foo) {
+    let bar = foo * 2;
+    bar = something( bar );
+    console.log( bar );
+}
+
+console.log( bar ); // ReferenceError
+```
+Using let to attach a variable to an existing block is somewhat implicit. It can confuse you if you're not paying close attention to which blocks have variables scoped to them, and are in the habit of moving blocks around, wrapping them in other blocks, etc., as you develop and evolve code.
+
+
+
 #### let Loops
 
 A particular case where let shines is in the for-loop case as we discussed previously.

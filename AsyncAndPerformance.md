@@ -1132,99 +1132,115 @@ for (var v of it) {    
 When we call it.return(..), it immediately terminates the generator, which of course runs the finally clause.
 
 ### Iterating Generators Asynchronously
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2846-2855 | Added on Monday, December 26, 2016 8:31:24 AM
 
-3. Let's recall the callback approach: function foo(x,y,cb) {    ajax(        "http://some.url.1/?x=" + x + "&y=" + y,        cb    );}foo( 11, 31, function(err,text) {    if (err) {        console.error( err );    }    else {        console.log( text );    }} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2855-2873 | Added on Monday, December 26, 2016 8:31:48 AM
+3. Let's recall the callback approach:
+```JavaScript
+function foo(x,y,cb) {    
+  ajax(        
+    "http://some.url.1/?x=" + x + "&y=" + y,        
+    cb    
+  );
+}
 
-If we wanted to express this same task flow control with a generator, we could do: function foo(x,y) {    ajax(        "http://some.url.1/?x=" + x + "&y=" + y,        function(err,data){            if (err) {                // throw an error into `*main()`                it.throw( err );            }            else {                // resume `*main()` with received `data`                it.next( data );            }        }    );}function *main() {    try {        var text = yield foo( 11, 31 );        console.log( text );    }    catch (err) {        console.error( err );    }}var it = main();// start it all up!it.next();
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2876-2879 | Added on Monday, December 26, 2016 8:32:57 AM
+foo( 11, 31, function(err,text) {    
+  if (err) {        
+    console.error( err );    
+  }    
+  else {        
+    console.log( text );    
+  }
+}
+);
+```
 
-First, let's look at this part of the code, which is the most important: var text = yield foo( 11, 31 );console.log( text );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2881-2881 | Added on Monday, December 26, 2016 8:33:52 AM
+If we wanted to express this same task flow control with a generator, we could do:
+```JavaScript
+function foo(x,y) {    
+  ajax(        
+    "http://some.url.1/?x=" + x + "&y=" + y,        
+    function(err,data){            
+      if (err) {                
+        // throw an error into `*main()`                
+        it.throw( err );            
+      }            
+      else {                
+        // resume `*main()` with received `data`                
+        it.next( data );            
+      }        
+    }    
+  );
+}
+
+function *main() {    
+  try {        
+    var text = yield foo( 11, 31 );        
+    console.log( text );    
+  }    
+
+  catch (err) {        
+    console.error( err );    
+  }
+}
+
+var it = main();// start it all up!
+
+it.next();
+```
+
+First, let's look at this part of the code, which is the most important:
+```JavaScript
+var text = yield foo( 11, 31 );
+console.log( text );
+```
 
 If you recall
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2882-2884 | Added on Monday, December 26, 2016 8:33:58 AM
-
-var data = ajax( "..url 1.." );console.log( data ); And that code didn't work!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2884-2885 | Added on Monday, December 26, 2016 8:34:06 AM
+```JavaScript
+var data = ajax( "..url 1.." );
+console.log( data );
+```
+And that code didn't work!
 
 Can you spot the difference? It's the yield used in a generator.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2885-2886 | Added on Monday, December 26, 2016 8:34:20 AM
 
 That's the magic! That's what allows us to have what appears to be blocking, synchronous code, but it doesn't actually block the whole program; it only pauses/blocks the code in the generator itself.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2887-2889 | Added on Monday, December 26, 2016 8:35:02 AM
 
 In yield foo(11,31), first the foo(11,31) call is made, which returns nothing (aka undefined), so we're making a call to request data, but we're actually then doing yield undefined. That's OK, because the code is not currently relying on a yielded value to do anything interesting.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2891-2892 | Added on Monday, December 26, 2016 8:35:49 AM
 
 So, the generator pauses at the yield, essentially asking the question, "what value should I return to assign to the variable text?" Who's going to answer that question?
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2892-2894 | Added on Monday, December 26, 2016 8:36:03 AM
 
 Look at foo(..). If the Ajax request is successful, we call: it.next( data );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2894-2896 | Added on Monday, December 26, 2016 8:36:51 AM
 
 That's resuming the generator with the response data, which means that our paused yield expression receives that value directly, and then as it restarts the generator code, that value gets assigned to the local variable text.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2896-2899 | Added on Monday, December 26, 2016 8:37:11 AM
 
 Take a step back and consider the implications. We have totally synchronous-looking code inside the generator (other than the yield keyword itself), but hidden behind the scenes, inside of foo(..), the operations can complete asynchronously. That's huge!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2900-2901 | Added on Monday, December 26, 2016 8:37:47 AM
 
 In essence, we are abstracting the asynchrony away as an implementation detail, so that we can reason synchronously/sequentially about our flow control: "Make an Ajax request, and when it finishes print out the response."
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2904-2904 | Added on Monday, December 26, 2016 8:38:14 AM
 
-Synchronous Error Handling
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2906-2910 | Added on Monday, December 26, 2016 8:38:29 AM
+### Synchronous Error Handling
 
-try {    var text = yield foo( 11, 31 );    console.log( text );}catch (err) {    console.error( err );}
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2913-2919 | Added on Monday, December 26, 2016 8:39:18 AM
+```JavaScript
+try {    
+  var text = yield foo( 11, 31 );    
+  console.log( text );
+}
+catch (err) {    
+  console.error( err );
+}
+```
 
-The awesome part is that this yield pausing also allows the generator to catch an error. We throw that error into the generator with this part of the earlier code listing: if (err) {    // throw an error into `*main()`    it.throw( err );} The yield-pause nature of generators means that not only do we get synchronous-looking return values from async function calls, but we can also synchronously catch errors from those async function calls!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2942-2943 | Added on Monday, December 26, 2016 8:40:09 AM
+The awesome part is that this yield pausing also allows the generator to catch an error. We throw that error into the generator with this part of the earlier code listing:
+```JavaScript
+if (err) {    
+  // throw an error into `*main()`    
+  it.throw( err );
+}
+```
 
-Generators + Promises
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2944-2945 | Added on Monday, December 26, 2016 8:54:46 AM
+The yield-pause nature of generators means that not only do we get synchronous-looking return values from async function calls, but we can also synchronously catch errors from those async function calls!
+
+### Generators + Promises
 
 we lost something very important: the trustability and composability of Promises
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2945-2946 | Added on Monday, December 26, 2016 8:55:03 AM
 
 The best of all worlds in ES6 is to combine generators (synchronous-looking async code) with Promises (trustable and composable).
 ==========
