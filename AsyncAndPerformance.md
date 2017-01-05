@@ -1016,101 +1016,122 @@ for (var v of something) {    
 ```
 
 The for..of loop automatically calls next() for each iteration -- it doesn't pass any values in to the next() -- and it will automatically terminate on receiving a done:true. It's quite handy for looping over a set of data.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2725-2730 | Added on Monday, December 26, 2016 8:19:08 AM
 
-In addition to making your own iterators, many built-in data structures in JS (as of ES6), like arrays, also have default iterators: var a = [1,3,5,7,9];for (var v of a) {    console.log( v );}// 1 3 5 7 9
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2738-2738 | Added on Monday, December 26, 2016 8:19:57 AM
+In addition to making your own iterators, many built-in data structures in JS (as of ES6), like arrays, also have default iterators:
+```JavaScript
+var a = [1,3,5,7,9];
+for (var v of a) {    
+  console.log( v );
+}// 1 3 5 7 9
+```
 
-Iterables
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2738-2741 | Added on Monday, December 26, 2016 8:20:22 AM
+###Iterables
 
 The something object in our running example is called an iterator, as it has the next() method on its interface. But a closely related term is iterable, which is an object that contains an iterator that can iterate over its values.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2741-2743 | Added on Monday, December 26, 2016 8:20:55 AM
 
 As of ES6, the way to retrieve an iterator from an iterable is that the iterable must have a function on it, with the name being the special ES6 symbol value Symbol.iterator. When this function is called, it returns an iterator. Though not required, generally each call should return a fresh new iterator.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2744-2751 | Added on Monday, December 26, 2016 8:21:25 AM
 
-a in the previous snippet is an iterable. The for..of loop automatically calls its Symbol.iterator function to construct an iterator. But we could of course call the function manually, and use the iterator it returns: var a = [1,3,5,7,9];var it = a[Symbol.iterator]();it.next().value;    // 1it.next().value;    // 3it.next().value;    // 5..
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2751-2762 | Added on Monday, December 26, 2016 8:21:47 AM
+a in the previous snippet is an iterable. The for..of loop automatically calls its Symbol.iterator function to construct an iterator. But we could of course call the function manually, and use the iterator it returns:
+```JavaScript
+var a = [1,3,5,7,9];
+var it = a[Symbol.iterator]();
+it.next().value;    // 1
+it.next().value;    // 3
+it.next().value;    // 5..
+```
 
-In the previous code listing that defined something, you may have noticed this line: [Symbol.iterator]: function(){ return this; } That little bit of confusing code is making the something value -- the interface of the something iterator -- also an iterable; it's now both an iterable and an iterator. Then, we pass something to the for..of loop: for (var v of something) {    ..} The for..of loop expects something to be an iterable, so it looks for and calls its Symbol.iterator function. We defined that function to simply return this, so it just gives itself back, and the for..of loop is none the wiser.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2762-2762 | Added on Monday, December 26, 2016 8:22:23 AM
+In the previous code listing that defined something, you may have noticed this line: [Symbol.iterator]: function(){ return this; } That little bit of confusing code is making the something value -- the interface of the something iterator -- also an iterable; it's now both an iterable and an iterator. Then, we pass something to the for..of loop: for (var v of something) {..} The for..of loop expects something to be an iterable, so it looks for and calls its Symbol.iterator function. We defined that function to simply return this, so it just gives itself back, and the for..of loop is none the wiser.
 
-Generator Iterator
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2763-2764 | Added on Monday, December 26, 2016 8:22:45 AM
+### Generator Iterator
 
 A generator can be treated as a producer of values that we extract one at a time through an iterator interface's next() calls.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2764-2768 | Added on Monday, December 26, 2016 8:23:00 AM
 
-So, a generator itself is not technically an iterable, though it's very similar -- when you execute the generator, you get an iterator back: function *foo(){ .. }var it = foo();
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2769-2778 | Added on Monday, December 26, 2016 8:23:25 AM
+So, a generator itself is not technically an iterable, though it's very similar -- when you execute the generator, you get an iterator back: function 
+```JavaScript
+*foo(){
+  ..
+}
+var it = foo();
+```
 
-We can implement the something infinite number series producer from earlier with a generator, like this: function *something() {    var nextVal;    while (true) {        if (nextVal === undefined) {            nextVal = 1;        }        else {            nextVal = (3 * nextVal) + 6;        }        yield nextVal;    }}
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2780-2782 | Added on Monday, December 26, 2016 8:24:20 AM
+We can implement the something infinite number series producer from earlier with a generator, like this:
+```JavaScript
+ function *something() {    
+   var nextVal;    
+   while (true) {        
+     if (nextVal === undefined) {            
+       nextVal = 1;        
+     }        
+     else {            
+       nextVal = (3 * nextVal) + 6;        
+     }        
+     yield nextVal;    
+   }
+ }
+ ```
 
 However, in a generator, such a loop is generally totally OK if it has a yield in it, as the generator will pause at each iteration, yielding back to the main program and/or to the event loop queue. To put it glibly, "generators put the while..true back in JS programming!"
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2783-2784 | Added on Monday, December 26, 2016 8:24:34 AM
 
-That's a fair bit cleaner and simpler, right? Because the generator pauses at each yield, the state (scope) of the function *something() is kept around, meaning there's no need for the closure boilerplate to preserve variable state across calls.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2787-2793 | Added on Monday, December 26, 2016 8:25:41 AM
+That's a fair bit cleaner and simpler, right? Because the generator pauses at each yield, the state (scope) of the `function *something()` is kept around, meaning there's no need for the closure boilerplate to preserve variable state across calls.
 
-And now we can use our shiny new *something() generator with a for..of loop, and you'll see it works basically identically: for (var v of something()) {    console.log( v );    // don't let the loop run forever!    if (v > 500) {        break;    }}// 1 9 33 105 321 969
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2794-2796 | Added on Monday, December 26, 2016 8:26:14 AM
+And now we can use our shiny new `*something()` generator with a for..of loop, and you'll see it works basically identically:
+```JavaScript
+for (var v of something()) {    
+  console.log( v );    // don't let the loop run forever!    
+  if (v > 500) {        
+    break;    
+  }
+}// 1 9 33 105 321 969
+```
 
-But don't skip over for (var v of something()) ..! We didn't just reference something as a value like in earlier examples, but instead called the *something() generator to get its iterator for the for..of loop to use.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2797-2802 | Added on Monday, December 26, 2016 8:26:47 AM
+But don't skip over for (var v of something()) ..! We didn't just reference something as a value like in earlier examples, but instead called the `*something()` generator to get its iterator for the for..of loop to use.
 
 Why couldn't we say for (var v of something) ..? Because something here is a generator, which is not an iterable. We have to call something() to construct a producer for the for..of loop to iterate over. The something() call produces an iterator, but the for..of loop wants an iterable, right? Yep. The generator's iterator also has a Symbol.iterator function on it, which basically does a return this, just like the something iterable we defined earlier. In other words, a generator's iterator is also an iterable!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2804-2807 | Added on Monday, December 26, 2016 8:27:22 AM
 
 But there's a hidden behavior that takes care of that for you. "Abnormal completion" (i.e., "early termination") of the for..of loop -- generally caused by a break, return, or an uncaught exception -- sends a signal to the generator's iterator for it to terminate.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2811-2825 | Added on Monday, December 26, 2016 8:29:04 AM
 
-If you specify a try..finally clause inside the generator, it will always be run even when the generator is externally completed. This is useful if you need to clean up resources (database connections, etc.): function *something() {    try {        var nextVal;        while (true) {            if (nextVal === undefined) {                nextVal = 1;            }            else {                nextVal = (3 * nextVal) + 6;            }            yield nextVal;        }    }    // cleanup clause    finally {        console.log( "cleaning up!" );    }}
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2827-2838 | Added on Monday, December 26, 2016 8:29:25 AM
+If you specify a try..finally clause inside the generator, it will always be run even when the generator is externally completed. This is useful if you need to clean up resources (database connections, etc.):
+```JavaScript
+function *something() {    
+  try {        
+    var nextVal;        
+    while (true) {            
+      if (nextVal === undefined) {                
+        nextVal = 1;            
+      }            
+      else {                
+        nextVal = (3 * nextVal) + 6;            
+      }            
+      yield nextVal;        
+    }    
+  }    // cleanup clause    
+  finally {        
+    console.log( "cleaning up!" );    
+  }
+}
+```
 
-you could instead manually terminate the generator's iterator instance from the outside with return(..): var it = something();for (var v of it) {    console.log( v );    // don't let the loop run forever!    if (v > 500) {        console.log(            // complete the generator's iterator            it.return( "Hello World" ).value        );        // no `break` needed here    }}// 1 9 33 105 321 969// cleaning up!// Hello World When we call it.return(..), it immediately terminates the generator, which of course runs the finally clause.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2844-2844 | Added on Monday, December 26, 2016 8:30:05 AM
+you could instead manually terminate the generator's iterator instance from the outside with return(..):
+```JavaScript
+var it = something();
+for (var v of it) {    
+  console.log( v );    
+  // don't let the loop run forever!    
+  if (v > 500) {        
+    console.log(            
+      // complete the generator's iterator            
+      it.return( "Hello World" ).value        
+    );        
+    // no `break` needed here    
+  }
+}
+// 1 9 33 105 321 969
+// cleaning up!
+// Hello World
+```
+When we call it.return(..), it immediately terminates the generator, which of course runs the finally clause.
 
-Iterating Generators Asynchronously
+### Iterating Generators Asynchronously
 ==========
 You Don't Know JS: Async & Performance (Kyle Simpson)
 - Your Highlight on Location 2846-2855 | Added on Monday, December 26, 2016 8:31:24 AM
