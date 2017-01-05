@@ -123,41 +123,161 @@ if (foo) {
 }
 ```
 
-someReallyBigData variable at all. That means, theoretically, after process(..) runs, the big memory-heavy data structure could be garbage collected. However, it’s quite likely (though implementation dependent) that the JS engine will still have to keep the structure around, since the click function has a closure over the entire scope. Block-scoping can address this concern, making it clearer to the engine that it does not need to keep someReallyBigData around:
+### Garbage Collection
 
+Another reason block-scoping is useful relates to closures and garbage collection to reclaim memory. We'll briefly illustrate here, but the closure mechanism is explained in detail in Chapter 5.
+
+Consider:
 ```JavaScript
 function process(data) {
-  // do something interesting
-} // anything declared inside this block can go away after!
-
-{
-  let someReallyBigData = { .. };
-  process( someReallyBigData );
+    // do something interesting
 }
 
-var btn = document.getElementById( "my_button");
+var someReallyBigData = { .. };
+
+process( someReallyBigData );
+
+var btn = document.getElementById( "my_button" );
 
 btn.addEventListener( "click", function click(evt){
-  console.log("button clicked");
+    console.log("button clicked");
 }, /*capturingPhase=*/false );
 ```
 
-Declaring explicit blocks for variables to locally bind to is a powerful tool that you can add to your code toolbox
+The click function click handler callback doesn't need the someReallyBigData variable at all. That means, theoretically, after process(..) runs, the big memory-heavy data structure could be garbage collected. However, it's quite likely (though implementation dependent) that the JS engine will still have to keep the structure around, since the click function has a closure over the entire scope.
 
-In ES6, the `let` keyword (a cousin to the var keyword) is introduced to allow declarations of variables in any arbitrary block of code. ```JavaScript
-if (..) {
-  let a = 2;
+Block-scoping can address this concern, making it clearer to the engine that it does not need to keep someReallyBigData around:
+
+```JavaScript
+function process(data) {
+    // do something interesting
+}
+
+// anything declared inside this block can go away after!
+{
+    let someReallyBigData = { .. };
+
+    process( someReallyBigData );
+}
+
+var btn = document.getElementById( "my_button" );
+
+btn.addEventListener( "click", function click(evt){
+    console.log("button clicked");
+}, /*capturingPhase=*/false );
+```
+Declaring explicit blocks for variables to locally bind to is a powerful tool that you can add to your code toolbox.
+
+#### let Loops
+
+A particular case where let shines is in the for-loop case as we discussed previously.
+```JavaScript
+for (let i=0; i<10; i++) {
+    console.log( i );
+}
+
+console.log( i ); // ReferenceError
+```
+Not only does let in the for-loop header bind the i to the for-loop body, but in fact, it re-binds it to each iteration of the loop, making sure to re-assign it the value from the end of the previous loop iteration.
+
+Here's another way of illustrating the per-iteration binding behavior that occurs:
+
+```JavaScript
+{
+    let j;
+    for (j=0; j<10; j++) {
+        let i = j; // re-bound for each iteration!
+        console.log( i );
+    }
 }
 ```
-will declare a variable a that essentially hijacks the scope of the if’s { .. } block and attaches itself there
+The reason why this per-iteration binding is interesting will become clear in Chapter 5 when we discuss closures.
 
+Because let declarations attach to arbitrary blocks rather than to the enclosing function's scope (or global), there can be gotchas where existing code has a hidden reliance on function-scoped var declarations, and replacing the var with let may require additional care when refactoring code.
 
+Consider:
+
+```JavaScript
+var foo = true, baz = 10;
+
+if (foo) {
+    var bar = 3;
+
+    if (baz > bar) {
+        console.log( baz );
+    }
+
+    // ...
+}
+```
+This code is fairly easily re-factored as:
+
+```JavaScript
+var foo = true, baz = 10;
+
+if (foo) {
+    var bar = 3;
+
+    // ...
+}
+
+if (baz > bar) {
+    console.log( baz );
+}
+```
+But, be careful of such changes when using block-scoped variables:
+
+```JavaScript
+var foo = true, baz = 10;
+
+if (foo) {
+    let bar = 3;
+
+    if (baz > bar) { // <-- don't forget `bar` when moving!
+        console.log( baz );
+    }
+}
+```
+See Appendix B for an alternate (more explicit) style of block-scoping which may provide easier to maintain/refactor code that's more robust to these scenarios.
+
+### const
+
+In addition to let, ES6 introduces const, which also creates a block-scoped variable, but whose value is fixed (constant). Any attempt to change that value at a later time results in an error.
+
+```JavaScript
+var foo = true;
+
+if (foo) {
+    var a = 2;
+    const b = 3; // block-scoped to the containing `if`
+
+    a = 3; // just fine!
+    b = 4; // error!
+}
+
+console.log( a ); // 3
+console.log( b ); // ReferenceError!
+```
+
+# Chapter 4: Hoisting
+
+Consider another piece of code:
+```JavaScript
+console.log( a );
+var a = 2;
+```
 
 When you see `var a = 2;`, you probably think of that as one statement. But JavaScript actually thinks of it as two statements: var a; and a = 2;. The first statement, the declaration, is processed during the compilation phase. The second statement, the assignment, is left in place for the execution phase.
 
 So, one way of thinking, sort of metaphorically, about this process, is that variable and function declarations are “moved” from where they appear in the flow of the code to the top of the code. This gives rise to the name hoisting
 
-Function declarations are hoisted, as we just saw. But function expressions are not. `foo(); // not ReferenceError, but TypeError!` `var foo = function bar() { // ... };`
+Function declarations are hoisted, as we just saw. But function expressions are not.
+```JavaScript
+foo(); // not ReferenceError, but TypeError!
+var foo = function bar() {
+  // ...
+};
+```
 
 recall that even though it’s a named function expression, the name identifier is not available in the enclosing scope:
 ```JavaScript
@@ -178,6 +298,8 @@ foo = function() {
   // ...
 }
 ```
+
+# Chapter 5: Scope Closure
 
 `Closure` is when a function is able to remember and access its lexical scope even when that function is executing outside its lexical scope
 
