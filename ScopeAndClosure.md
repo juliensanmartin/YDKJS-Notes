@@ -1,5 +1,7 @@
 #Scope And Closure
 
+## Chapter 1: What is Scope?
+
 One of the most fundamental paradigms of nearly all programming languages is the ability to store values in variables, and later retrieve or modify those values. In fact, the ability to store values and pull values out of variables is what gives a program state
 
 `Tokenizing/Lexing` : Breaking up a string of characters into meaningful (to the language) chunks, called tokens
@@ -15,7 +17,11 @@ The `JavaScript engine` is vastly more complex than just those three steps, as a
 ### Understanding Scope
 The way we will approach learning about `scope` is to think of the process in terms of a conversation. But, who is having the conversation? Let’s meet the cast of characters that interact to process the program `var a = 2;`, so we understand their conversations that we’ll listen in on shortly.
 
-`Scope` Another friend of `Engine`; collects and maintains a look-up list of all the declared identifiers (variables), and enforces a strict set of rules as to how these are accessible to currently executing code
+1. `Engine`: responsible for start-to-finish compilation and execution of our JavaScript program.
+
+2. `Compiler`: one of Engine's friends; handles all the dirty work of parsing and code-generation (see previous section).
+
+3. `Scope` Another friend of `Engine`; collects and maintains a look-up list of all the declared identifiers (variables), and enforces a strict set of rules as to how these are accessible to currently executing code
 
 `Engine` sees two distinct statements, one that `Compiler` will handle during compilation, and one that `Engine` will handle during execution. So, let’s break down how `Engine` and friends will approach the program `var a = 2;`. The first thing `Compiler` will do with this program is perform `lexing` to break it down into `tokens`, which it will then `parse` into a `tree`. But when `Compiler` gets to code generation, it will treat this program somewhat differently than perhaps assumed. A reasonable assumption would be that `Compiler` will produce code that could be summed up by this pseudocode: `Allocate memory for a variable, label it a, then stick the value 2 into that variable.` Unfortunately, that’s not quite accurate. `Compiler` will instead proceed as:
 1. Encountering var a, `Compiler` asks `Scope` to see if a variable a already exists for that particular scope collection. If so, `Compiler` ignores this declaration and moves on. Otherwise, `Compiler` asks `Scope` to declare a new variable called `a` for that scope collection.
@@ -31,12 +37,14 @@ Being slightly glib for a moment, you could think RHS instead means "retrieve hi
 When I say: `console.log( a );` The reference to `a` is an RHS reference, because nothing is being assigned to `a` here. Instead, we’re looking up to retrieve the value of `a`, so that the value can be passed to `console.log(..)`. By contrast: `a = 2;` The reference to `a` here is an LHS reference, because we don’t actually care what the current value is, we simply want to find the variable as a target for the `= 2` assignment operation.
 "Who’s the target of the assignment (LHS)?"" and "Who’s the source of the assignment (RHS)?"
 
-#### Scope
+#### Nested Scope
 Just as a block or function is nested inside another block or function, scopes are nested inside other scopes. So, if a variable cannot be found in the immediate scope, Engine consults the next outer containing scope, continuing until is found or until the outermost (a.k.a., global) scope has been reached.
 
 The simple rules for traversing nested scope: Engine starts at the currently executing scope, looks for the variable there, then if not found, keeps going up one level, and so on. If the outermost global scope is reached, the search stops, whether it finds the variable or not.
 
 `Strict Mode` which was added in ES5, has a number of different behaviors from normal/relaxed/lazy mode. One such behavior is that it disallows the automatic/implicit global variable creation. In that case, there would be no global scoped variable to hand back from an LHS look-up, and Engine would throw a `ReferenceError` similarly to the RHS case
+
+## Chapter 2: Lexical Scope
 
 There are two predominant models for how scope works. The first of these is by far the most common, used by the vast majority of programming languages. It’s called `lexical scope`, and we will examine it in depth. The other model, which is still used by some languages (such as Bash scripting, some modes in Perl, etc) is called dynamic scope.
 
@@ -46,9 +54,13 @@ Scope look-up stops once it finds the first match. The same identifier name can 
 
 Global variables are automatically also properties of the global object (window in browsers, etc.), so it is possible to reference a global variable not directly by its lexical name, but instead indirectly as a property reference of the global object. window.a This technique gives access to a global variable that would otherwise be inaccessible due to it being shadowed. However, non-global shadowed variables cannot be accessed no matter where a function is invoked from, or even how it is invoked, its lexical scope is only defined by where the function was declared
 
+### Performance
+
 The lexical scope look-up process only applies to first-class identifiers, such as the a, b, and c. If you had a reference to foo.bar.baz in a piece of code, the lexical scope look-up would apply to finding the foo identifier, but once it locates that variable, object property-access rules take over to resolve the bar and baz properties, respectively
 
 The JavaScript engine has a number of performance optimizations that it performs during the compilation phase. Some of these boil down to being able to essentially statically analyze the code as it lexes, and predetermine where all the variable and function declarations are, so that it takes less effort to resolve identifiers during execution
+
+## Chapter 3: Function vs. Block Scope
 
 But the inverse thinking is equally powerful and useful: take any arbitrary section of code you’ve written and wrap a function declaration around it, which in effect “hides” the code
 
@@ -280,7 +292,7 @@ console.log( a ); // 3
 console.log( b ); // ReferenceError!
 ```
 
-# Chapter 4: Hoisting
+## Chapter 4: Hoisting
 
 Consider another piece of code:
 ```JavaScript
@@ -320,7 +332,7 @@ foo = function() {
 }
 ```
 
-# Chapter 5: Scope Closure
+## Chapter 5: Scope Closure
 
 `Closure` is when a function is able to remember and access its lexical scope even when that function is executing outside its lexical scope
 
