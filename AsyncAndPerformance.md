@@ -1303,49 +1303,68 @@ p.then(    
   }
 );
 ```
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2995-2995 | Added on Monday, December 26, 2016 9:00:38 AM
 
-Promise-Aware Generator Runner
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2997-2999 | Added on Monday, December 26, 2016 9:01:11 AM
+### Promise-Aware Generator Runner
 
 This is such an important pattern, and you don't want to get it wrong (or exhaust yourself repeating it over and over), so your best bet is to use a utility that is specifically designed to run Promise-yielding generators in the manner we've illustrated.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 2990-2990 | Added on Monday, December 26, 2016 9:02:03 AM
 
 What if we wanted to be able to Promise-drive a generator no matter how many steps it has?
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3000-3003 | Added on Monday, December 26, 2016 9:02:36 AM
-
+=
 let's just define our own standalone utility that we'll call run(..): // thanks to Benjamin Gruenbaum (@benjamingr on GitHub) for// big improvements here!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3003-3039 | Added on Monday, December 26, 2016 9:03:18 AM
 
-function run(gen) {    var args = [].slice.call( arguments, 1), it;    // initialize the generator in the current context    it = gen.apply( this, args );    // return a promise for the generator completing    return Promise.resolve()        .then( function handleNext(value){            // run to the next yielded value            var next = it.next( value );            return (function handleResult(next){                // generator has completed running?                if (next.done) {                    return next.value;                }                // otherwise keep going                else {                    return Promise.resolve( next.value )                        .then(                            // resume the async loop on                            // success, sending the resolved                            // value back into the generator                            handleNext,                            // if `value` is a rejected                            // promise, propagate error back                            // into the generator for its own                            // error handling                            function handleErr(err) {                                return Promise.resolve(                                    it.throw( err )                                )                                .then( handleResult );                            }                        );                }            })(next);        } );} As
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3040-3041 | Added on Monday, December 26, 2016 9:21:29 AM
+```JavaScript
+function run(gen) {    
+  var args = [].slice.call( arguments, 1),
+  it;    // initialize the generator in the current context    
+  it = gen.apply( this, args );    
+  // return a promise for the generator completing    
+  return Promise.resolve()        
+  .then( function handleNext(value){            
+    // run to the next yielded value            
+    var next = it.next( value );            
+    return (function handleResult(next){                
+      // generator has completed running?                
+      if (next.done) {                    
+        return next.value;                
+      }                
+      // otherwise keep going                
+      else {                    
+        return Promise.resolve( next.value )                        
+        .then(                            
+          // resume the async loop on                            
+          // success, sending the resolved                            
+          // value back into the generator                            
+          handleNext,                            
+          // if `value` is a rejected                            
+          // promise, propagate error back                            
+          // into the generator for its own                            
+          // error handling                            
+          function handleErr(err) {                                
+            return Promise.resolve(                                    
+              it.throw( err )                                
+            )                                
+            .then( handleResult );                            
+          }                        
+        );                
+      }            
+    })(next);        
+  });
+}
+```
 
 So, a utility/library helper is definitely the way to go.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3042-3046 | Added on Monday, December 26, 2016 9:21:55 AM
 
-How would you use run(..) with *main() in our running Ajax example? function *main() {    // ..}run( main ); That's it!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3046-3047 | Added on Monday, December 26, 2016 9:22:06 AM
+How would you use run(..) with `*main()` in our running Ajax example?
+```JavaScript
+function *main() {    
+  // ..
+}
+
+run( main );
+```
+That's it!
 
 The way we wired run(..), it will automatically advance the generator you pass to it, asynchronously until completion.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3078-3079 | Added on Tuesday, December 27, 2016 7:27:49 AM
 
 Imagine a scenario where you need to fetch data from two different sources, then combine those responses to make a third request, and finally print out the last response.
 ==========
