@@ -1367,181 +1367,227 @@ That's it!
 The way we wired run(..), it will automatically advance the generator you pass to it, asynchronously until completion.
 
 Imagine a scenario where you need to fetch data from two different sources, then combine those responses to make a third request, and finally print out the last response.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3081-3090 | Added on Tuesday, December 27, 2016 7:28:31 AM
 
-function *foo() {    var r1 = yield request( "http://some.url.1" );    var r2 = yield request( "http://some.url.2" );    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo ); This code will work, but in the specifics of our scenario, it's not optimal.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3090-3092 | Added on Tuesday, December 27, 2016 7:28:48 AM
+```JavaScript
+function *foo() {    
+  var r1 = yield request( "http://some.url.1" );    
+  var r2 = yield request( "http://some.url.2" );    
+  var r3 = yield request(        
+    "http://some.url.3/?v=" + r1 + "," + r2    
+  );    
+
+  console.log( r3 );
+}
+// use previously defined `run(..)` utility
+run( foo );
+```
+
+This code will work, but in the specifics of our scenario, it's not optimal.
 
 Can you spot why? Because the r1 and r2 requests can -- and for performance reasons, should -- run concurrently, but in this code they will run sequentially; the "http://some.url.2"
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3093-3095 | Added on Tuesday, December 27, 2016 7:29:24 AM
 
 But how exactly would you do that with a generator and yield? We know that yield is only a single pause point in the code, so you can't really do two pauses at the same time. The most natural and effective answer is to
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3093-3096 | Added on Tuesday, December 27, 2016 7:29:43 AM
 
 But how exactly would you do that with a generator and yield? We know that yield is only a single pause point in the code, so you can't really do two pauses at the same time. The most natural and effective answer is to base the async flow on Promises, specifically on their capability to manage state in a time-independent fashion (see "Future Value" in Chapter 3).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3097-3108 | Added on Tuesday, December 27, 2016 7:30:27 AM
 
-function *foo() {    // make both requests "in parallel"    var p1 = request( "http://some.url.1" );    var p2 = request( "http://some.url.2" );    // wait until both promises resolve    var r1 = yield p1;    var r2 = yield p2;    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3110-3110 | Added on Tuesday, December 27, 2016 7:30:44 AM
+```JavaScript
+function *foo() {    
+  // make both requests "in parallel"    
+  var p1 = request( "http://some.url.1" );    
+  var p2 = request( "http://some.url.2" );    
+  // wait until both promises resolve    
+  var r1 = yield p1;    
+  var r2 = yield p2;    
+  var r3 = yield request(        
+    "http://some.url.3/?v=" + r1 + "," + r2    
+  );    
+
+  console.log( r3 );
+}
+// use previously defined `run(..)` utility
+run( foo );
+```
 
 It doesn't matter which one finishes first, because promises will hold onto their resolved state for as long as necessary.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3114-3115 | Added on Tuesday, December 27, 2016 7:31:14 AM
 
 Either way, both p1 and p2 will run concurrently, and both have to finish, in either order, before the r3 = yield request.. Ajax request will be made.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3115-3117 | Added on Tuesday, December 27, 2016 7:31:32 AM
 
 If that flow control processing model sounds familiar, it's basically the same as what we identified in Chapter 3 as the "gate" pattern, enabled by the Promise.all([ .. ]) utility. So, we could also express the flow control like this:
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3117-3129 | Added on Tuesday, December 27, 2016 7:32:00 AM
 
-function *foo() {    // make both requests "in parallel," and    // wait until both promises resolve    var results = yield Promise.all( [        request( "http://some.url.1" ),        request( "http://some.url.2" )    ] );    var r1 = results[0];    var r2 = results[1];    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3131-3132 | Added on Tuesday, December 27, 2016 7:32:40 AM
+```JavaScript
+function *foo() {    
+  // make both requests "in parallel," and    
+  // wait until both promises resolve    
+  var results = yield Promise.all( [        
+    request( "http://some.url.1" ),        
+    request( "http://some.url.2" )    
+  ] );    
+
+  var r1 = results[0];    
+  var r2 = results[1];    
+  var r3 = yield request(        
+    "http://some.url.3/?v=" + r1 + "," + r2    
+  );    
+
+  console.log( r3 );
+}
+// use previously defined `run(..)` utility
+run( foo );
+```
 
 In other words, all of the concurrency capabilities of Promises are available to us in the generator+Promise approach. So in any place where you need more than sequential this-then-that async flow control steps, Promises are likely your best bet.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3133-3133 | Added on Tuesday, December 27, 2016 7:32:46 AM
 
-Promises, Hidden
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3133-3134 | Added on Tuesday, December 27, 2016 7:32:56 AM
+#### Promises, Hidden
 
 As a word of stylistic caution, be careful about how much Promise logic you include inside your generators.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3136-3151 | Added on Tuesday, December 27, 2016 7:34:14 AM
 
-this might be a cleaner approach: // note: normal function, not generatorfunction bar(url1,url2) {    return Promise.all( [        request( url1 ),        request( url2 )    ] );}function *foo() {    // hide the Promise-based concurrency details    // inside `bar(..)`    var results = yield bar(        "http://some.url.1",        "http://some.url.2"    );    var r1 = results[0];    var r2 = results[1];    var r3 = yield request(        "http://some.url.3/?v=" + r1 + "," + r2    );    console.log( r3 );}// use previously defined `run(..)` utilityrun( foo );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3151-3154 | Added on Tuesday, December 27, 2016 7:34:28 AM
+this might be a cleaner approach:
+```JavaScript
+// note: normal function, not generator
+function bar(url1,url2) {    
+  return Promise.all( [        
+    request( url1 ),        
+    request( url2 )    
+  ] );
+}
+function *foo() {    
+  // hide the Promise-based concurrency details    
+  // inside `bar(..)`    
+  var results = yield bar(        
+    "http://some.url.1",        
+    "http://some.url.2"    
+  );    
+  var r1 = results[0];    
+  var r2 = results[1];    
+  var r3 = yield request(        
+    "http://some.url.3/?v=" + r1 + "," + r2    
+  );    
 
-Inside *foo(), it's cleaner and clearer that all we're doing is just asking bar(..) to get us some results, and we'll yield-wait on that to happen. We don't have to care that under the covers a Promise.all([ .. ]) Promise composition will be used to make that happen.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3154-3154 | Added on Tuesday, December 27, 2016 7:34:38 AM
+  console.log( r3 );
+}// use previously defined `run(..)` utility
+run( foo );
+```
+
+Inside `*foo()`, it's cleaner and clearer that all we're doing is just asking bar(..) to get us some results, and we'll yield-wait on that to happen. We don't have to care that under the covers a Promise.all([ .. ]) Promise composition will be used to make that happen.
 
 We treat asynchrony, and indeed Promises, as an implementation detail.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3155-3160 | Added on Tuesday, December 27, 2016 7:34:54 AM
 
-Hiding your Promise logic inside a function that you merely call from your generator is especially useful if you're going to do a sophisticated series flow-control. For example: function bar() {    Promise.all( [        baz( .. )        .then( .. ),        Promise.race( [ .. ] )    ] )    .then( .. )} That
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3155-3163 | Added on Tuesday, December 27, 2016 7:35:13 AM
+Hiding your Promise logic inside a function that you merely call from your generator is especially useful if you're going to do a sophisticated series flow-control. For example:
+```JavaScript
+function bar() {    
+  Promise.all( [        
+    baz( .. )        
+    .then( .. ),        
+    Promise.race( [ .. ] )    
+  ] ).then( .. )
+}
+```
 
-Hiding your Promise logic inside a function that you merely call from your generator is especially useful if you're going to do a sophisticated series flow-control. For example: function bar() {    Promise.all( [        baz( .. )        .then( .. ),        Promise.race( [ .. ] )    ] )    .then( .. )} That kind of logic is sometimes required, and if you dump it directly inside your generator(s), you've defeated most of the reason why you would want to use generators in the first place. We should intentionally abstract such details away from our generator code so that they don't clutter up the higher level task expression.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3163-3164 | Added on Tuesday, December 27, 2016 7:35:23 AM
+That kind of logic is sometimes required, and if you dump it directly inside your generator(s), you've defeated most of the reason why you would want to use generators in the first place. We should intentionally abstract such details away from our generator code so that they don't clutter up the higher level task expression.
 
 Beyond creating code that is both functional and performant, you should also strive to make code that is as reason-able and maintainable as possible.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3167-3167 | Added on Tuesday, December 27, 2016 7:35:48 AM
 
-Generator Delegation
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3170-3182 | Added on Tuesday, December 27, 2016 7:37:24 AM
+#### Generator Delegation
 
-It may then occur to you that you might try to call one generator from another generator, using our run(..) helper, such as: function *foo() {    var r2 = yield request( "http://some.url.2" );    var r3 = yield request( "http://some.url.3/?v=" + r2 );    return r3;}function *bar() {    var r1 = yield request( "http://some.url.1" );    // "delegating" to `*foo()` via `run(..)`    var r3 = yield run( foo );    console.log( r3 );}run( bar );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3182-3183 | Added on Tuesday, December 27, 2016 7:37:31 AM
+It may then occur to you that you might try to call one generator from another generator, using our run(..) helper, such as:
+```JavaScript
+function *foo() {    
+  var r2 = yield request( "http://some.url.2" );    
+  var r3 = yield request( "http://some.url.3/?v=" + r2 );    
+  return r3;
+}
 
-We run *foo() inside of *bar() by using our run(..) utility again.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3186-3187 | Added on Tuesday, December 27, 2016 7:37:58 AM
+function *bar() {    
+  var r1 = yield request( "http://some.url.1" );    
+  // "delegating" to `*foo()` via `run(..)`    
+  var r3 = yield run( foo );    
+  console.log( r3 );
+}
+run( bar );
+```
 
-But there's an even better way to integrate calling *foo() into *bar(), and it's called yield-delegation.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3187-3187 | Added on Tuesday, December 27, 2016 7:38:17 AM
+We run `*foo()` inside of `*bar()` by using our run(..) utility again.
+
+But there's an even better way to integrate calling `*foo()` into `*bar()`, and it's called yield-delegation.
 
 The special syntax for yield-delegation is: yield * __
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3188-3204 | Added on Tuesday, December 27, 2016 7:38:49 AM
 
-function *foo() {    console.log( "`*foo()` starting" );    yield 3;    yield 4;    console.log( "`*foo()` finished" );}function *bar() {    yield 1;    yield 2;    yield *foo();    // `yield`-delegation!    yield 5;}var it = bar();it.next().value;    // 1it.next().value;    // 2it.next().value;    // `*foo()` starting                    // 3it.next().value;    // 4it.next().value;    // `*foo()` finished                    // 5
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3208-3210 | Added on Tuesday, December 27, 2016 7:40:05 AM
+```JavaScript
+function *foo() {    
+  console.log( "`*foo()` starting" );    
+  yield 3;    
+  yield 4;    
+  console.log( "`*foo()` finished" );
+}
 
-First, calling foo() creates an iterator exactly as we've already seen. Then, yield * delegates/transfers the iterator instance control (of the present *bar() generator) over to this other *foo() iterator.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3214-3226 | Added on Tuesday, December 27, 2016 7:40:38 AM
+function *bar() {    
+  yield 1;    
+  yield 2;    
+  yield *foo();    
+  // `yield`-delegation!    
+  yield 5;
+}
 
-So now back to the previous example with the three sequential Ajax requests: function *foo() {    var r2 = yield request( "http://some.url.2" );    var r3 = yield request( "http://some.url.3/?v=" + r2 );    return r3;}function *bar() {    var r1 = yield request( "http://some.url.1" );    // "delegating" to `*foo()` via `yield*`    var r3 = yield *foo();    console.log( r3 );}run( bar ); The only difference
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3214-3227 | Added on Tuesday, December 27, 2016 7:40:51 AM
+var it = bar();
+it.next().value;    // 1
+it.next().value;    // 2
+it.next().value;    // `*foo()` starting                    
+// 3
+it.next().value;    // 4
+it.next().value;    // `*foo()` finished 
+// 5
+```
 
-So now back to the previous example with the three sequential Ajax requests: function *foo() {    var r2 = yield request( "http://some.url.2" );    var r3 = yield request( "http://some.url.3/?v=" + r2 );    return r3;}function *bar() {    var r1 = yield request( "http://some.url.1" );    // "delegating" to `*foo()` via `yield*`    var r3 = yield *foo();    console.log( r3 );}run( bar ); The only difference between this snippet and the version used earlier is the use of yield *foo() instead of the previous yield run(foo).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3231-3231 | Added on Tuesday, December 27, 2016 7:41:18 AM
+First, calling foo() creates an iterator exactly as we've already seen. Then, yield * delegates/transfers the iterator instance control (of the present `*bar()` generator) over to this other `*foo()` iterator.
 
-Why Delegation?
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3231-3232 | Added on Tuesday, December 27, 2016 7:41:32 AM
+So now back to the previous example with the three sequential Ajax requests:
+```JavaScript
+function *foo() {    
+  var r2 = yield request( "http://some.url.2" );    
+  var r3 = yield request( "http://some.url.3/?v=" + r2 );    
+  return r3;
+}
+function *bar() {    
+  var r1 = yield request( "http://some.url.1" );    
+  // "delegating" to `*foo()` via `yield*`    
+  var r3 = yield *foo();    
+  console.log( r3 );
+}
+run( bar );
+```
+
+The only difference between this snippet and the version used earlier is the use of yield `*foo()` instead of the previous yield run(foo).
+
+### Why Delegation?
 
 The purpose of yield-delegation is mostly code organization, and in that way is symmetrical with normal function calling.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3235-3237 | Added on Tuesday, December 27, 2016 7:42:11 AM
 
-For all these exact same reasons, keeping generators separate aids in program readability, maintenance, and debuggability. In that respect, yield * is a syntactic shortcut for manually iterating over the steps of *foo() while inside of *bar().
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3343-3344 | Added on Tuesday, December 27, 2016 7:44:25 AM
+For all these exact same reasons, keeping generators separate aids in program readability, maintenance, and debuggability. In that respect, yield * is a syntactic shortcut for manually iterating over the steps of `*foo()` while inside of `*bar()`.
 
-Delegating Asynchrony
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3359-3360 | Added on Tuesday, December 27, 2016 7:46:11 AM
+#### Delegating Asynchrony
 
-Delegating "Recursion"
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3362-3371 | Added on Tuesday, December 27, 2016 7:46:21 AM
+#### Delegating "Recursion"
 
-function *foo(val) {    if (val > 1) {        // generator recursion        val = yield *foo( val - 1 );    }    return yield request( "http://some.url/?v=" + val );}function *bar() {    var r1 = yield *foo( 3 );    console.log( r1 );}run( bar );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3375-3395 | Added on Tuesday, December 27, 2016 7:46:43 AM
+```JavaScript
+function *foo(val) {    
+  if (val > 1) {        
+    // generator recursion        
+    val = yield *foo( val - 1 );    
+  }    
+  return yield request( "http://some.url/?v=" + val );
+}
 
-Hang on, this is going to be quite intricate to describe in detail: run(bar) starts up the *bar() generator. foo(3) creates an iterator for *foo(..) and passes 3 as its val parameter. Because 3 > 1, foo(2) creates another iterator and passes in 2 as its val parameter. Because 2 > 1, foo(1) creates yet another iterator and passes in 1 as its val parameter. 1 > 1 is false, so we next call request(..) with the 1 value, and get a promise back for that first Ajax call. That promise is yielded out, which comes back to the *foo(2) generator instance. The yield * passes that promise back out to the *foo(3) generator instance. Another yield * passes the promise out to the *bar() generator instance. And yet again another yield * passes the promise out to the run(..) utility, which will wait on that promise (for the first Ajax request) to proceed. When the promise resolves, its fulfillment message is sent to resume *bar(), which passes through the yield * into the *foo(3) instance, which then passes through the yield * to the *foo(2) generator instance, which then passes through the yield * to the normal yield that's waiting in the *foo(3) generator instance. That first call's Ajax response is now immediately returned from the *foo(3) generator instance, which sends that value back as the result of the yield * expression in the *foo(2) instance, and assigned to its local val variable. Inside *foo(2), a second Ajax request is made with request(..), whose promise is yielded back to the *foo(1) instance, and then yield * propagates all the way out to run(..) (step 7 again). When the promise resolves, the second Ajax response propagates all the way back into the *foo(2) generator instance, and is assigned to its local val variable. Finally, the third Ajax request is made with request(..), its promise goes out to run(..), and then its resolution value comes all the way back, which is then returned so that it comes back to the waiting yield * expression in *bar().
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3396-3396 | Added on Tuesday, December 27, 2016 7:46:58 AM
+function *bar() {    
+  var r1 = yield *foo( 3 );    
+  console.log( r1 );
+}
 
-Generator Concurrency
+run( bar );
+```
+
+Hang on, this is going to be quite intricate to describe in detail: run(bar) starts up the `*bar()` generator. foo(3) creates an iterator for `*foo(..)` and passes 3 as its val parameter. Because 3 > 1, foo(2) creates another iterator and passes in 2 as its val parameter. Because 2 > 1, foo(1) creates yet another iterator and passes in 1 as its val parameter. 1 > 1 is false, so we next call request(..) with the 1 value, and get a promise back for that first Ajax call. That promise is yielded out, which comes back to the `*foo(2)` generator instance. The yield * passes that promise back out to the `*foo(3)` generator instance. Another yield * passes the promise out to the `*bar()` generator instance. And yet again another yield * passes the promise out to the run(..) utility, which will wait on that promise (for the first Ajax request) to proceed. When the promise resolves, its fulfillment message is sent to resume `*bar()`, which passes through the yield * into the `*foo(3)` instance, which then passes through the yield * to the `*foo(2)` generator instance, which then passes through the yield * to the normal yield that's waiting in the `*foo(3)` generator instance. That first call's Ajax response is now immediately returned from the `*foo(3)` generator instance, which sends that value back as the result of the yield * expression in the `*foo(2)` instance, and assigned to its local val variable. Inside `*foo(2)`, a second Ajax request is made with request(..), whose promise is yielded back to the `*foo(1)` instance, and then yield * propagates all the way out to run(..) (step 7 again). When the promise resolves, the second Ajax response propagates all the way back into the `*foo(2)` generator instance, and is assigned to its local val variable. Finally, the third Ajax request is made with request(..), its promise goes out to run(..), and then its resolution value comes all the way back, which is then returned so that it comes back to the waiting yield * expression in `*bar()`.
+
+#### Generator Concurrency
 ==========
 You Don't Know JS: Async & Performance (Kyle Simpson)
 - Your Highlight on Location 3400-3401 | Added on Wednesday, December 28, 2016 7:36:59 AM
