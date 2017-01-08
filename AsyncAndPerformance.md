@@ -1588,356 +1588,357 @@ run( bar );
 Hang on, this is going to be quite intricate to describe in detail: run(bar) starts up the `*bar()` generator. foo(3) creates an iterator for `*foo(..)` and passes 3 as its val parameter. Because 3 > 1, foo(2) creates another iterator and passes in 2 as its val parameter. Because 2 > 1, foo(1) creates yet another iterator and passes in 1 as its val parameter. 1 > 1 is false, so we next call request(..) with the 1 value, and get a promise back for that first Ajax call. That promise is yielded out, which comes back to the `*foo(2)` generator instance. The yield * passes that promise back out to the `*foo(3)` generator instance. Another yield * passes the promise out to the `*bar()` generator instance. And yet again another yield * passes the promise out to the run(..) utility, which will wait on that promise (for the first Ajax request) to proceed. When the promise resolves, its fulfillment message is sent to resume `*bar()`, which passes through the yield * into the `*foo(3)` instance, which then passes through the yield * to the `*foo(2)` generator instance, which then passes through the yield * to the normal yield that's waiting in the `*foo(3)` generator instance. That first call's Ajax response is now immediately returned from the `*foo(3)` generator instance, which sends that value back as the result of the yield * expression in the `*foo(2)` instance, and assigned to its local val variable. Inside `*foo(2)`, a second Ajax request is made with request(..), whose promise is yielded back to the `*foo(1)` instance, and then yield * propagates all the way out to run(..) (step 7 again). When the promise resolves, the second Ajax response propagates all the way back into the `*foo(2)` generator instance, and is assigned to its local val variable. Finally, the third Ajax request is made with request(..), its promise goes out to run(..), and then its resolution value comes all the way back, which is then returned so that it comes back to the waiting yield * expression in `*bar()`.
 
 #### Generator Concurrency
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3400-3401 | Added on Wednesday, December 28, 2016 7:36:59 AM
-
 two different simultaneous Ajax response handlers needed to coordinate with each other to make sure that the data communication was not a race condition.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3401-3413 | Added on Wednesday, December 28, 2016 7:37:12 AM
 
-We slotted the responses into the res array like this: function response(data) {    if (data.url == "http://some.url.1") {        res[0] = data;    }    else if (data.url == "http://some.url.2") {        res[1] = data;    }} But how can we use multiple generators concurrently for this scenario? // `request(..)` is a Promise-aware Ajax utilityvar res = [];function *reqData(url) {    res.push(        yield request( url )    );}
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3416-3418 | Added on Wednesday, December 28, 2016 7:37:34 AM
+We slotted the responses into the res array like this:
+```JavaScript
+function response(data) {    
+  if (data.url == "http://some.url.1") {        
+    res[0] = data;    
+  }    
+  else if (data.url == "http://some.url.2") {        
+    res[1] = data;    
+  }
+}
+```
+
+ But how can we use multiple generators concurrently for this scenario?
+ ```JavaScript
+ // `request(..)` is a Promise-aware Ajax utility
+ var res = [];
+ function *reqData(url) {    
+   res.push(        
+     yield request( url )    
+   );
+ }
+ ```
 
 Instead of having to manually sort out res[0] and res[1] assignments, we'll use coordinated ordering so that res.push(..) properly slots the values in the expected and predictable order. The expressed logic thus should feel a bit cleaner.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3418-3426 | Added on Wednesday, December 28, 2016 7:37:47 AM
 
-But how will we actually orchestrate this interaction? First, let's just do it manually, with Promises: var it1 = reqData( "http://some.url.1" );var it2 = reqData( "http://some.url.2" );var p1 = it1.next();var p2 = it2.next();p1.then( function(data){    it1.next( data );    return p2;} ).then( function(data){    it2.next( data );} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3426-3429 | Added on Wednesday, December 28, 2016 7:38:00 AM
+But how will we actually orchestrate this interaction? First, let's just do it manually, with Promises:
+```JavaScript
+var it1 = reqData( "http://some.url.1" );
+var it2 = reqData( "http://some.url.2" );
+var p1 = it1.next();
+var p2 = it2.next();
+p1.then(
+  function(data){    
+    it1.next( data );    
+    return p2;
+  } )
+  .then(
+    function(data){    
+      it2.next( data );
+    } );
+    ```
 
-*reqData(..)'s two instances are both started to make their Ajax requests, then paused with yield. Then we choose to resume the first instance when p1 resolves, and then p2's resolution will restart the second instance. In this way, we use Promise orchestration to ensure that res[0] will have the first response and res[1] will have the second response.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3430-3430 | Added on Wednesday, December 28, 2016 7:38:10 AM
+
+`*reqData(..)`'s two instances are both started to make their Ajax requests, then paused with yield. Then we choose to resume the first instance when p1 resolves, and then p2's resolution will restart the second instance. In this way, we use Promise orchestration to ensure that res[0] will have the first response and res[1] will have the second response.
 
 this is awfully manual,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3430-3444 | Added on Wednesday, December 28, 2016 7:38:30 AM
 
-Let's try it a different way: // `request(..)` is a Promise-aware Ajax utilityvar res = [];function *reqData(url) {    var data = yield request( url );    // transfer control    yield;    res.push( data );}var it1 = reqData( "http://some.url.1" );var it2 = reqData( "http://some.url.2" );var p1 = it.next();var p2 = it.next();p1.then( function(data){    it1.next( data );} );p2.then( function(data){    it2.next( data );} );Promise.all( [p1,p2] ).then( function(){    it1.next();    it2.next();} ); OK, this is a bit better
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3445-3445 | Added on Wednesday, December 28, 2016 7:38:43 AM
+Let's try it a different way:
+```JavaScript
+// `request(..)` is a Promise-aware Ajax utility
+var res = [];
+function *reqData(url) {    
+  var data = yield request( url );    
+  // transfer control    
+  yield;    
+  res.push( data );
+}
 
-two instances of *reqData(..) run truly concurrently,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3446-3448 | Added on Wednesday, December 28, 2016 7:38:55 AM
+var it1 = reqData( "http://some.url.1" );
+var it2 = reqData( "http://some.url.2" );
+var p1 = it.next();
+var p2 = it.next();
+p1.then( function(data){    
+  it1.next( data );
+} );
+p2.then( function(data){    
+  it2.next( data );
+} );
+
+Promise.all( [p1,p2] )
+.then( function(){    
+  it1.next();    
+  it2.next();
+} );
+```
+OK, this is a bit better
+
+two instances of `*reqData(..)` run truly concurrently,
 
 In the previous snippet, the second instance was not given its data until after the first instance was totally finished. But here, both instances receive their data as soon as their respective responses come back, and then each instance does another yield for control transfer purposes. We then choose what order to resume them in the Promise.all([ .. ]) handler.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3449-3449 | Added on Wednesday, December 28, 2016 7:39:13 AM
 
 this approach hints at an easier form for a reusable utility, because of the symmetry.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3449-3461 | Added on Wednesday, December 28, 2016 7:39:28 AM
 
-Let's imagine using a utility called runAll(..): // `request(..)` is a Promise-aware Ajax utilityvar res = [];runAll(    function*(){        var p1 = request( "http://some.url.1" );        // transfer control        yield;        res.push( yield p1 );    },    function*(){        var p2 = request( "http://some.url.2" );        // transfer control        yield;        res.push( yield p2 );    });
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3461-3474 | Added on Wednesday, December 28, 2016 7:39:51 AM
+Let's imagine using a utility called runAll(..):
+```JavaScript
+// `request(..)` is a Promise-aware Ajax utility
+var res = [];
+runAll(    
+  function*(){        
+    var p1 = request( "http://some.url.1" );        
+    // transfer control        
+    yield;        
+    res.push( yield p1 );    
+  },    
+  function*(){        
+    var p2 = request( "http://some.url.2" );        
+    // transfer control        
+    yield;        
+    res.push( yield p2 );    
+  });
+);
+```
 
 Note: We're not including a code listing for runAll(..) as it is not only long enough to bog down the text, but is an extension of the logic we've already implemented in run(..) earlier. So, as a good supplementary exercise for the reader, try your hand at evolving the code from run(..) to work like the imagined runAll(..). Also, my asynquence library provides a previously mentioned runner(..) utility with this kind of capability already built in, and will be discussed in Appendix A of this book. Here's how the processing inside runAll(..) would operate: The first generator gets a promise for the first Ajax response from "http://some.url.1", then yields control back to the runAll(..) utility. The second generator runs and does the same for "http://some.url.2", yielding control back to the runAll(..) utility. The first generator resumes, and then yields out its promise p1. The runAll(..) utility does the same in this case as our previous run(..), in that it waits on that promise to resolve, then resumes the same generator (no control transfer!). When p1 resolves, runAll(..) resumes the first generator again with that resolution value, and then res[0] is given its value. When the first generator then finishes, that's an implicit transfer of control. The second generator resumes, yields out its promise p2, and waits for it to resolve. Once it does, runAll(..) resumes the second generator with that value, and res[1] is set.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3474-3476 | Added on Wednesday, December 28, 2016 7:40:01 AM
 
 In this running example, we use an outer variable called res to store the results of the two different Ajax responses -- that's our concurrency coordination making that possible.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3476-3496 | Added on Wednesday, December 28, 2016 7:40:24 AM
 
-But it might be quite helpful to further extend runAll(..) to provide an inner variable space for the multiple generator instances to share, such as an empty object we'll call data below. Also, it could take non-Promise values that are yielded and hand them off to the next generator. Consider: // `request(..)` is a Promise-aware Ajax utilityrunAll(    function*(data){        data.res = [];        // transfer control (and message pass)        var url1 = yield "http://some.url.2";        var p1 = request( url1 ); // "http://some.url.1"        // transfer control        yield;        data.res.push( yield p1 );    },    function*(data){        // transfer control (and message pass)        var url2 = yield "http://some.url.1";        var p2 = request( url2 ); // "http://some.url.2"        // transfer control        yield;        data.res.push( yield p2 );    }); In this formulation, the two generators are not just coordinating control transfer, but actually communicating with each other, both through data.res and the yielded messages that trade url1 and url2 values. That's incredibly powerful!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3496-3497 | Added on Wednesday, December 28, 2016 7:40:41 AM
+But it might be quite helpful to further extend runAll(..) to provide an inner variable space for the multiple generator instances to share, such as an empty object we'll call data below. Also, it could take non-Promise values that are yielded and hand them off to the next generator. Consider:
+```JavaScript
+// `request(..)` is a Promise-aware Ajax utility
+runAll(    
+  function*(data){        
+    data.res = [];        
+    // transfer control (and message pass)        
+    var url1 = yield "http://some.url.2";        
+    var p1 = request( url1 ); // "http://some.url.1"        
+    // transfer control        
+    yield;        
+    data.res.push( yield p1 );    
+  },    
+  function*(data){        
+    // transfer control (and message pass)        
+    var url2 = yield "http://some.url.1";        
+    var p2 = request( url2 ); // "http://some.url.2"        
+    // transfer control        
+    yield;        
+    data.res.push( yield p2 );    
+  });
+)
+  ```
+In this formulation, the two generators are not just coordinating control transfer, but actually communicating with each other, both through data.res and the yielded messages that trade url1 and url2 values. That's incredibly powerful!
 
 Such realization also serves as a conceptual base for a more sophisticated asynchrony technique called CSP (Communicating Sequential Processes),
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3498-3498 | Added on Wednesday, December 28, 2016 7:40:46 AM
 
 Thunks
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3498-3500 | Added on Wednesday, December 28, 2016 7:41:01 AM
-
+=
 So far, we've made the assumption that yielding a Promise from a generator -- and having that Promise resume the generator via a helper utility like run(..) -- was the best possible way to manage asynchrony with generators. To be clear, it is.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3501-3502 | Added on Wednesday, December 28, 2016 7:41:50 AM
 
 In general computer science, there's an old pre-JS concept called a "thunk."
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3502-3503 | Added on Wednesday, December 28, 2016 7:42:06 AM
 
 a narrow expression of a thunk in JS is a function that -- without any parameters -- is wired to call another function.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3503-3504 | Added on Wednesday, December 28, 2016 7:42:17 AM
 
 In other words, you wrap a function definition around function call -- with any parameters it needs -- to defer the execution of that call, and that wrapping function is a thunk.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3504-3512 | Added on Wednesday, December 28, 2016 7:44:02 AM
 
-When you later execute the thunk, you end up calling the original function. For example: function foo(x,y) {    return x + y;}function fooThunk() {    return foo( 3, 4 );}// laterconsole.log( fooThunk() );    // 7
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3513-3513 | Added on Wednesday, December 28, 2016 7:45:40 AM
+When you later execute the thunk, you end up calling the original function. For example:
+```JavaScript
+function foo(x,y) {    
+  return x + y;
+}
+
+function fooThunk() {    
+  return foo( 3, 4 );
+}
+// later
+console.log( fooThunk() );    // 7
+```
 
 But what about an async thunk?
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3514-3523 | Added on Wednesday, December 28, 2016 7:45:53 AM
 
-Consider: function foo(x,y,cb) {    setTimeout( function(){        cb( x + y );    }, 1000 );}function fooThunk(cb) {    foo( 3, 4, cb );}// laterfooThunk( function(sum){    console.log( sum );        // 7} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3523-3526 | Added on Wednesday, December 28, 2016 7:46:09 AM
+Consider:
+```JavaScript
+function foo(x,y,cb) {    
+  setTimeout( function(){        
+    cb( x + y );    
+  }, 1000 );
+}
+function fooThunk(cb) {    
+  foo( 3, 4, cb );
+}
+// later
+fooThunk( function(sum){    
+  console.log( sum );        // 7} );
+});
+```
 
 As you can see, fooThunk(..) only expects a cb(..) parameter, as it already has values 3 and 4 (for x and y, respectively) pre-specified and ready to pass to foo(..). A thunk is just waiting around patiently for the last piece it needs to do its job: the callback.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3526-3537 | Added on Wednesday, December 28, 2016 7:46:24 AM
 
-let's invent a utility that does this wrapping for us. Consider: function thunkify(fn) {    var args = [].slice.call( arguments, 1 );    return function(cb) {        args.push( cb );        return fn.apply( null, args );    };}var fooThunk = thunkify( foo, 3, 4 );// laterfooThunk( function(sum) {    console.log( sum );        // 7} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3541-3543 | Added on Wednesday, December 28, 2016 7:47:34 AM
+let's invent a utility that does this wrapping for us. Consider:
+```JavaScript
+function thunkify(fn) {    
+  var args = [].slice.call( arguments, 1 );    
+  return function(cb) {        
+    args.push( cb );        
+    return fn.apply( null, args );    
+  };
+}
+
+var fooThunk = thunkify( foo, 3, 4 );
+// later
+fooThunk( function(sum) {    
+  console.log( sum );        // 7
+} );
+```
 
 The preceding formulation of thunkify(..) takes both the foo(..) function reference, and any parameters it needs, and returns back the thunk itself (fooThunk(..)). However, that's not the typical approach you'll find to thunks in JS.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3543-3545 | Added on Wednesday, December 28, 2016 7:47:57 AM
 
 Instead of thunkify(..) making the thunk itself, typically -- if not perplexingly -- the thunkify(..) utility would produce a function that produces thunks.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3545-3553 | Added on Wednesday, December 28, 2016 7:48:19 AM
 
-Consider: function thunkify(fn) {    return function() {        var args = [].slice.call( arguments );        return function(cb) {            args.push( cb );            return fn.apply( null, args );        };    };}
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3554-3560 | Added on Wednesday, December 28, 2016 7:48:57 AM
+Consider:
+```JavaScript
+function thunkify(fn) {    
+  return function() {        
+    var args = [].slice.call( arguments );        
+    return function(cb) {            
+      args.push( cb );            
+      return fn.apply( null, args );        
+    };    
+  };
+}
+```
 
-The main difference here is the extra return function() { .. } layer. Here's how its usage differs: var whatIsThis = thunkify( foo );var fooThunk = whatIsThis( 3, 4 );// laterfooThunk( function(sum) {    console.log( sum );        // 7} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3560-3563 | Added on Wednesday, December 28, 2016 7:49:39 AM
+The main difference here is the extra return function() { .. } layer. Here's how its usage differs:
+```JavaScript
+var whatIsThis = thunkify( foo );
+var fooThunk = whatIsThis( 3, 4 );
+// later
+fooThunk( function(sum) {    
+  console.log( sum );        // 7
+} );
+```
 
 Obviously, the big question this snippet implies is what is whatIsThis properly called? It's not the thunk, it's the thing that will produce thunks from foo(..) calls. It's kind of like a "factory" for "thunks." There doesn't seem to be any kind of standard agreement for naming such a thing.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3563-3573 | Added on Wednesday, December 28, 2016 7:50:03 AM
 
-So, my proposal is "thunkory" ("thunk" + "factory"). So, thunkify(..) produces a thunkory, and a thunkory produces thunks. That reasoning is symmetric to my proposal for "promisory" in Chapter 3: var fooThunkory = thunkify( foo );var fooThunk1 = fooThunkory( 3, 4 );var fooThunk2 = fooThunkory( 5, 6 );// laterfooThunk1( function(sum) {    console.log( sum );        // 7} );fooThunk2( function(sum) {    console.log( sum );        // 11} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3578-3579 | Added on Wednesday, December 28, 2016 7:51:05 AM
+So, my proposal is "thunkory" ("thunk" + "factory"). So, thunkify(..) produces a thunkory, and a thunkory produces thunks. That reasoning is symmetric to my proposal for "promisory" in Chapter 3:
+```JavaScript
+var fooThunkory = thunkify( foo );
+var fooThunk1 = fooThunkory( 3, 4 );
+var fooThunk2 = fooThunkory( 5, 6 );
+// later
+fooThunk1( function(sum) {    
+  console.log( sum );        // 7
+} );
+
+fooThunk2( function(sum) {    
+  console.log( sum );        // 11
+} );
+```
 
 in general, it's quite useful to make thunkories at the beginning of your program to wrap existing API methods, and then be able to pass around and call those thunkories when you need thunks.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3579-3580 | Added on Wednesday, December 28, 2016 7:51:10 AM
 
 preserve a cleaner separation of capability.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3580-3587 | Added on Wednesday, December 28, 2016 7:51:19 AM
 
-// cleaner:var fooThunkory = thunkify( foo );var fooThunk1 = fooThunkory( 3, 4 );var fooThunk2 = fooThunkory( 5, 6 );// instead of:var fooThunk1 = thunkify( foo, 3, 4 );var fooThunk2 = thunkify( foo, 5, 6 );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3589-3589 | Added on Wednesday, December 28, 2016 9:29:06 PM
+```JavaScript
+// cleaner:
+var fooThunkory = thunkify( foo );
+var fooThunk1 = fooThunkory( 3, 4 );
+var fooThunk2 = fooThunkory( 5, 6 );
+// instead of:
+var fooThunk1 = thunkify( foo, 3, 4 );
+var fooThunk2 = thunkify( foo, 5, 6 );
+```
 
-s/promise/thunk/
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3869-3869 | Added on Wednesday, December 28, 2016 9:38:05 PM
-
-Chapter 5: Program Performance
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3870-3871 | Added on Wednesday, December 28, 2016 9:38:29 PM
+# Chapter 5: Program Performance
 
 why asynchrony really matters to JS. The most obvious explicit reason is performance.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3880-3880 | Added on Wednesday, December 28, 2016 9:40:25 PM
 
 Web Workers
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3883-3885 | Added on Wednesday, December 28, 2016 9:40:41 PM
 
 Imagine splitting your program into two pieces, and running one of those pieces on the main UI thread, and running the other piece on an entirely separate thread. What kinds of concerns would such an architecture bring up?
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3885-3890 | Added on Wednesday, December 28, 2016 9:41:35 PM
 
 For one, you'd want to know if running on a separate thread meant that it ran in parallel (on systems with multiple CPUs/cores) such that a long-running process on that second thread would not block the main program thread. Otherwise, "virtual threading" wouldn't be of much benefit over what we already have in JS with async concurrency. And you'd want to know if these two pieces of the program have access to the same shared scope/resources. If they do, then you have all the questions that multithreaded languages (Java, C++, etc.) deal with, such as needing cooperative or preemptive locking (mutexes, etc.). That's a lot of extra work, and shouldn't be undertaken lightly.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3890-3891 | Added on Wednesday, December 28, 2016 9:41:45 PM
 
 Alternatively, you'd want to know how these two pieces could "communicate" if they couldn't share scope/resources.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3891-3892 | Added on Wednesday, December 28, 2016 9:42:01 PM
 
 we explore a feature added to the web platform circa HTML5 called "Web Workers."
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3892-3893 | Added on Wednesday, December 28, 2016 9:42:22 PM
 
 is a feature of the browser (aka host environment) and actually has almost nothing to do with the JS language itself. That is, JavaScript does not currently have any features that support threaded execution.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3894-3896 | Added on Wednesday, December 28, 2016 9:42:50 PM
 
 But an environment like your browser can easily provide multiple instances of the JavaScript engine, each on its own thread, and let you run a different program in each thread. Each of those separate threaded pieces of your program is called a "(Web) Worker." This type of parallelism is called "task parallelism," as the emphasis is on splitting up chunks of your program to run in parallel.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3897-3900 | Added on Wednesday, December 28, 2016 9:43:20 PM
 
-var w1 = new Worker( "http://some.url.1/mycoolworker.js" ); The URL should point to the location of a JS file
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3900-3901 | Added on Wednesday, December 28, 2016 9:43:33 PM
+```JavaScript
+var w1 = new Worker( "http://some.url.1/mycoolworker.js" );
+```
+
+The URL should point to the location of a JS file
 
 The browser will then spin up a separate thread and let that file run as an independent program in that thread.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3905-3907 | Added on Wednesday, December 28, 2016 9:44:24 PM
 
 The w1 Worker object is an event listener and trigger, which lets you subscribe to events sent by the Worker as well as send events to the Worker.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3907-3917 | Added on Wednesday, December 28, 2016 9:45:09 PM
+=
+Here's how to listen for events (actually, the fixed "message" event):
+```JavaScript
+w1.addEventListener( "message", function(evt){    
+  // evt.data
+} );
+```
 
-Here's how to listen for events (actually, the fixed "message" event): w1.addEventListener( "message", function(evt){    // evt.data} ); And you can send the "message" event to the Worker: w1.postMessage( "something cool to say" ); Inside the Worker, the messaging is totally symmetrical: // "mycoolworker.js"addEventListener( "message", function(evt){    // evt.data} );postMessage( "a really cool reply" );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3925-3927 | Added on Wednesday, December 28, 2016 9:46:41 PM
+And you can send the "message" event to the Worker:
+```JavaScript
+w1.postMessage( "something cool to say" );
+```
+
+Inside the Worker, the messaging is totally symmetrical:
+```JavaScript
+// "mycoolworker.js"
+addEventListener( "message", function(evt){    
+  // evt.data
+} );
+postMessage( "a really cool reply" );
+```
 
 If you have two or more pages (or multiple tabs with the same page!) in the browser that try to create a Worker from the same file URL, those will actually end up as completely separate Workers.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3932-3932 | Added on Thursday, December 29, 2016 7:20:47 AM
 
 Worker Environment
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3933-3934 | Added on Thursday, December 29, 2016 7:21:13 AM
 
 you cannot access any of its global variables, nor can you access the page's DOM or other resources. Remember: it's a totally separate thread.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3934-3934 | Added on Thursday, December 29, 2016 7:21:37 AM
 
 You can,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3934-3935 | Added on Thursday, December 29, 2016 7:21:48 AM
 
 perform network operations (Ajax, WebSockets) and set timers.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3935-3936 | Added on Thursday, December 29, 2016 7:22:09 AM
 
 the Worker has access to its own copy of several important global variables/features, including navigator, location, JSON, and applicationCache.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3944-3946 | Added on Thursday, December 29, 2016 7:23:15 AM
 
 What are some common uses for Web Workers? Processing intensive math calculations Sorting large data sets Data operations (compression, audio analysis, image pixel manipulations, etc.) High-traffic network communications
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3947-3947 | Added on Thursday, December 29, 2016 7:23:31 AM
 
 Data Transfer
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3947-3949 | Added on Thursday, December 29, 2016 7:23:48 AM
 
 You may notice a common characteristic of most of those uses, which is that they require a large amount of information to be transferred across the barrier between threads using the event mechanism, perhaps in both directions.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3949-3949 | Added on Thursday, December 29, 2016 7:24:05 AM
 
 In the early days of Workers, serializing all data to a string value was the only option.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3950-3950 | Added on Thursday, December 29, 2016 7:24:24 AM
 
 the data was being copied,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3950-3950 | Added on Thursday, December 29, 2016 7:24:36 AM
 
 doubling of memory
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3951-3954 | Added on Thursday, December 29, 2016 7:24:59 AM
 
 If you pass an object, a so-called "Structured Cloning Algorithm" (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/The_structured_clone_algorithm) is used to copy/duplicate the object on the other side.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3956-3958 | Added on Thursday, December 29, 2016 7:25:26 AM
 
 An even better option, especially for larger data sets, is "Transferable Objects" (http://updates.html5rocks.com/2011/12/Transferable-Objects-Lightning-Fast).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3958-3958 | Added on Thursday, December 29, 2016 7:25:50 AM
 
 What happens is that the object's "ownership" is transferred, but the data itself is not moved.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3960-3962 | Added on Thursday, December 29, 2016 7:26:20 AM
 
 any data structure that implements the Transferable interface (https://developer.mozilla.org/en-US/docs/Web/API/Transferable) will automatically be transferred this way (support Firefox & Chrome).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3968-3968 | Added on Thursday, December 29, 2016 7:26:58 AM
 
 Shared Workers
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3969-3973 | Added on Thursday, December 29, 2016 7:27:36 AM
 
 If your site or app allows for loading multiple tabs of the same page (a common feature), you may very well want to reduce the resource usage of their system by preventing duplicate dedicated Workers; the most common limited resource in this respect is a socket network connection, as browsers limit the number of simultaneous connections to a single host. Of course, limiting multiple connections from a client also eases your server resource requirements. In this case, creating a single centralized Worker that all the page instances of your site or app can share is quite useful.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3973-3973 | Added on Thursday, December 29, 2016 7:27:47 AM
 
 That's called a SharedWorker,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3974-3976 | Added on Thursday, December 29, 2016 7:28:04 AM
 
+```JavaScript
 var w1 = new SharedWorker( "http://some.url.1/mycoolworker.js" );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3977-3978 | Added on Thursday, December 29, 2016 7:28:41 AM
+```
 
 the Worker needs a way to know which program a message comes from. This unique identification is called a "port"
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3979-3982 | Added on Thursday, December 29, 2016 7:29:04 AM
 
-w1.port.addEventListener( "message", handleMessages );// ..w1.port.postMessage( "something cool" );
+```JavaScript
+w1.port.addEventListener( "message", handleMessages );
+// ..w1.port.postMessage( "something cool" );
+```
 ==========
 You Don't Know JS: Async & Performance (Kyle Simpson)
 - Your Highlight on Location 3982-3983 | Added on Thursday, December 29, 2016 7:29:38 AM
