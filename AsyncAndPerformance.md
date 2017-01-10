@@ -1939,14 +1939,8 @@ the Worker needs a way to know which program a message comes from. This unique i
 w1.port.addEventListener( "message", handleMessages );
 // ..w1.port.postMessage( "something cool" );
 ```
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3982-3983 | Added on Thursday, December 29, 2016 7:29:38 AM
 
 Also, the port connection must be initialized, as: w1.port.start();
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3984-3987 | Added on Thursday, December 29, 2016 7:32:25 AM
 
 Inside the shared Worker, an extra event must be handled: "connect". This event provides the port object for that particular connection. The most convenient way to keep multiple connections separate is to use closure (see Scope & Closures title of this series) over the port, as shown next, with the event listening and transmitting for that connection defined inside the handler for the "connect" event:
 ==========

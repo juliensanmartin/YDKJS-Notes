@@ -62,10 +62,94 @@ The JavaScript engine has a number of performance optimizations that it performs
 
 ## Chapter 3: Function vs. Block Scope
 
-But the inverse thinking is equally powerful and useful: take any arbitrary section of code you’ve written and wrap a function declaration around it, which in effect “hides” the code
+As we explored in Chapter 2, scope consists of a series of "bubbles" that each act as a container or bucket, in which identifiers (variables, functions) are declared. These bubbles nest neatly inside each other, and this nesting is defined at author-time.
+
+### Scope From Functions
+
+The most common answer to those questions is that JavaScript has function-based scope. That is, each function you declare creates a bubble for itself, but no other structures create their own scope bubbles. As we'll see in just a little bit, this is not quite true.
+
+Consider this code:
+```JavaScript
+function foo(a) {
+    var b = 2;
+
+    // some code
+
+    function bar() {
+        // ...
+    }
+
+    // more code
+
+    var c = 3;
+}
+```
+In this snippet, the scope bubble for foo(..) includes identifiers a, b, c and bar. It doesn't matter where in the scope a declaration appears, the variable or function belongs to the containing scope bubble, regardless. We'll explore how exactly that works in the next chapter.
+
+bar(..) has its own scope bubble. So does the global scope, which has just one identifier attached to it: foo.
+
+Because a, b, c, and bar all belong to the scope bubble of foo(..), they are not accessible outside of foo(..). That is, the following code would all result in ReferenceError errors, as the identifiers are not available to the global scope:
+```JavaScript
+bar(); // fails
+
+console.log( a, b, c ); // all 3 fail
+```
+However, all these identifiers (a, b, c, foo, and bar) are accessible inside of foo(..), and indeed also available inside of bar(..) (assuming there are no shadow identifier declarations inside bar(..)).
+
+Function scope encourages the idea that all variables belong to the function, and can be used and reused throughout the entirety of the function (and indeed, accessible even to nested scopes). This design approach can be quite useful, and certainly can make full use of the "dynamic" nature of JavaScript variables to take on values of different types as needed.
+
+On the other hand, if you don't take careful precautions, variables existing across the entirety of a scope can lead to some unexpected pitfalls.
+
+### Hiding In Plain Scope
+
+The traditional way of thinking about functions is that you declare a function, and then add code inside it. But the inverse thinking is equally powerful and useful: take any arbitrary section of code you’ve written and wrap a function declaration around it, which in effect “hides” the code
+
+The practical result is to create a scope bubble around the code in question, which means that any declarations (variable or function) in that code will now be tied to the scope of the new wrapping function, rather than the previously enclosing scope. In other words, you can "hide" variables and functions by enclosing them in the scope of a function.
 
 There’s a variety of reasons motivating this scope-based hiding. They tend to arise from the software design principle `Principle of Least Privilege` :
 This principle states that in the design of software, such as the API for a module/object, you should expose only what is minimally necessary, and “hide” everything else
+
+This principle extends to the choice of which scope to contain variables and functions. If all variables and functions were in the global scope, they would of course be accessible to any nested scope. But this would violate the "Least..." principle in that you are (likely) exposing many variables or functions which you should otherwise keep private, as proper use of the code would discourage access to those variables/functions.
+
+For example:
+```JavaScript
+function doSomething(a) {
+    b = a + doSomethingElse( a * 2 );
+
+    console.log( b * 3 );
+}
+
+function doSomethingElse(a) {
+    return a - 1;
+}
+
+var b;
+
+doSomething( 2 ); // 15
+```
+
+In this snippet, the b variable and the doSomethingElse(..) function are likely "private" details of how doSomething(..) does its job. Giving the enclosing scope "access" to b and doSomethingElse(..) is not only unnecessary but also possibly "dangerous", in that they may be used in unexpected ways, intentionally or not, and this may violate pre-condition assumptions of doSomething(..).
+
+A more "proper" design would hide these private details inside the scope of doSomething(..), such as:
+
+```JavaScript
+function doSomething(a) {
+    function doSomethingElse(a) {
+        return a - 1;
+    }
+
+    var b;
+
+    b = a + doSomethingElse( a * 2 );
+
+    console.log( b * 3 );
+}
+
+doSomething( 2 ); // 15
+```
+
+Now, b and doSomethingElse(..) are not accessible to any outside influence, instead controlled only by doSomething(..). The functionality and end-result has not been affected, but the design keeps private details private, which is usually considered better software.
+
 
 Such libraries typically will create a single variable declaration, often an object, with a sufficiently unique name, in the global scope. This object is then used as a namespace for that library, where all specific exposures of functionality are made as properties off that object (namespace), rather than as top-level lexically scoped identifiers themselves. For example:
 
@@ -82,9 +166,20 @@ var MyReallyCoolLibrary = {
 ```
 
 
-Another option for `collision avoidance` is the more modern `module approach`, using any of various dependency managers
+#### Module Management
 
-Using these tools, no libraries ever add any identifiers to the global scope, but are instead required to have their identifier(s) be explicitly imported into another specific scope through usage of the dependency manager’s various mechanisms
+Another option for collision avoidance is the more modern "module" approach, using any of various dependency managers. Using these tools, no libraries ever add any identifiers to the global scope, but are instead required to have their identifier(s) be explicitly imported into another specific scope through usage of the dependency manager's various mechanisms.
+
+It should be observed that these tools do not possess "magic" functionality that is exempt from lexical scoping rules. They simply use the rules of scoping as explained here to enforce that no identifiers are injected into any shared scope, and are instead kept in private, non-collision-susceptible scopes, which prevents any accidental scope collisions.
+
+As such, you can code defensively and achieve the same results as the dependency managers do without actually needing to use them, if you so choose. See the Chapter 5 for more information about the module pattern.
+
+### Functions As Scopes
+
+We've seen that we can take any snippet of code and wrap a function around it, and that effectively "hides" any enclosed variable or function declarations from the outside scope inside that function's inner scope.
+
+For example:
+
 ```JavaScript
 var a = 2;
 function foo() {
@@ -124,6 +219,8 @@ setTimeout( function timeoutHandler(){ // <-- Look, I have a // name!
 ```
 
 Now that we have a function as an expression by virtue of wrapping it in a ( ) pair, we can execute that function by adding another () on the end, like `(function foo(){ .. })()`. The first enclosing ( ) pair makes the function an expression, and the second () executes the function.
+
+### Blocks As Scopes
 
 That’s what block-scoping is all about. Declaring variables as close as possible, as local as possible, to where they will be used. Another example:
 ```JavaScript
