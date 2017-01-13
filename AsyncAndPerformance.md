@@ -1943,136 +1943,118 @@ w1.port.addEventListener( "message", handleMessages );
 Also, the port connection must be initialized, as: w1.port.start();
 
 Inside the shared Worker, an extra event must be handled: "connect". This event provides the port object for that particular connection. The most convenient way to keep multiple connections separate is to use closure (see Scope & Closures title of this series) over the port, as shown next, with the event listening and transmitting for that connection defined inside the handler for the "connect" event:
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3987-3996 | Added on Thursday, December 29, 2016 7:32:36 AM
 
-// inside the shared WorkeraddEventListener( "connect", function(evt){    // the assigned port for this connection    var port = evt.ports[0];    port.addEventListener( "message", function(evt){        // ..        port.postMessage( .. );        // ..    } );    // initialize the port connection    port.start();} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 3999-3999 | Added on Thursday, December 29, 2016 7:32:51 AM
+```JavaScript
+// inside the shared Worker
+addEventListener( "connect", function(evt){    
+  // the assigned port for this connection    
+  var port = evt.ports[0];    
+  port.addEventListener( "message", function(evt){        
+    // ..        
+    port.postMessage( .. );        
+    // ..    
+  } );    
+  // initialize the port connection    
+  port.start();
+} );
+```
 
-Polyfilling Web Workers
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4004-4007 | Added on Thursday, December 29, 2016 7:33:47 AM
+### Polyfilling Web Workers
 
 As we detailed in Chapter 1, JS's asynchronicity (not parallelism) comes from the event loop queue, so you can force faked Workers to be asynchronous using timers (setTimeout(..), etc.). Then you just need to provide a polyfill for the Worker API. There are some listed here (https://github.com/Modernizr/Modernizr/wiki/HTML5-Cross-Browser-Polyfills#web-workers), but frankly none of them look great.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4014-4016 | Added on Thursday, December 29, 2016 7:34:15 AM
 
 SIMD Single instruction, multiple data (SIMD) is a form of "data parallelism," as contrasted to "task parallelism" with Web Workers, because the emphasis is not really on program logic chunks being parallelized, but rather multiple bits of data being processed in parallel.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4016-4021 | Added on Thursday, December 29, 2016 7:36:09 AM
 
 With SIMD, threads don't provide the parallelism. Instead, modern CPUs provide SIMD capability with "vectors" of numbers -- think: type specialized arrays -- as well as instructions that can operate in parallel across all the numbers; these are low-level operations leveraging instruction-level parallelism. The effort to expose SIMD capability to JavaScript is primarily spearheaded by Intel (https://01.org/node/1495), namely by Mohammad Haghighat (at the time of this writing), in cooperation with Firefox and Chrome teams. SIMD is on an early standards track with a good chance of making it into a future revision of JavaScript, likely in the ES7 timeframe.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4021-4023 | Added on Thursday, December 29, 2016 7:36:35 AM
 
 SIMD JavaScript proposes to expose short vector types and APIs to JS code, which on those SIMD-enabled systems would map the operations directly through to the CPU equivalents, with fallback to non-parallelized operation "shims" on non-SIMD systems.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4024-4034 | Added on Thursday, December 29, 2016 7:36:51 AM
 
-Early proposal forms of the SIMD API at the time of this writing look like this: var v1 = SIMD.float32x4( 3.14159, 21.0, 32.3, 55.55 );var v2 = SIMD.float32x4( 2.1, 3.2, 4.3, 5.4 );var v3 = SIMD.int32x4( 10, 101, 1001, 10001 );var v4 = SIMD.int32x4( 10, 20, 30, 40 );SIMD.float32x4.mul( v1, v2 );    // [ 6.597339, 67.2, 138.89, 299.97 ]SIMD.int32x4.add( v3, v4 );    
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4140-4140 | Added on Thursday, December 29, 2016 7:38:09 AM
+Early proposal forms of the SIMD API at the time of this writing look like this:
+```JavaScript
+var v1 = SIMD.float32x4( 3.14159, 21.0, 32.3, 55.55 );
+var v2 = SIMD.float32x4( 2.1, 3.2, 4.3, 5.4 );
+var v3 = SIMD.int32x4( 10, 101, 1001, 10001 );
+var v4 = SIMD.int32x4( 10, 20, 30, 40 );
+SIMD.float32x4.mul( v1, v2 );    // [ 6.597339, 67.2, 138.89, 299.97 ]
+SIMD.int32x4.add( v3, v4 );    
+```
 
-Review
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4141-4154 | Added on Thursday, December 29, 2016 7:38:21 AM
+### Review
 
 The first four chapters of this book are based on the premise that async coding patterns give you the ability to write more performant code, which is generally a very important improvement. But async behavior only gets you so far, because it's still fundamentally bound to a single event loop thread. So in this chapter we've covered several program-level mechanisms for improving performance even further. Web Workers let you run a JS file (aka program) in a separate thread using async events to message between the threads. They're wonderful for offloading long-running or resource-intensive tasks to a different thread, leaving the main UI thread more resposive. SIMD proposes to map CPU-level parallel math operations to JavaScript APIs for high-performance data-parallel operations, like number processing on large data sets. Finally, asm.js describes a small subset of JavaScript that avoids the hard-to-optimize parts of JS (like garbage collection and coercion) and lets the JS engine recognize and run such code through aggressive optimizations. asm.js could be hand authored, but that's extremely tedious and error prone, akin to hand authoring assembly language (hence the name). Instead, the main intent is that asm.js would be a good target for cross-compilation from other highly optimized program languages -- for example, Emscripten (https://github.com/kripken/emscripten/wiki) transpiling C/C++ to JavaScript. While not covered explicitly in this chapter, there are even more radical ideas under very early discussion for JavaScript, including approximations of direct threaded functionality (not just hidden behind data structure APIs). Whether that happens explicitly, or we just see more parallelism creep into JS behind the scenes, the future of more optimized program-level performance in JS looks really promising.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4156-4156 | Added on Thursday, December 29, 2016 7:40:43 AM
 
-Chapter 6: Benchmarking & Tuning
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4165-4165 | Added on Thursday, December 29, 2016 7:44:11 AM
+## Chapter 6: Benchmarking & Tuning
 
-Benchmarking
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4166-4174 | Added on Thursday, December 29, 2016 7:45:52 AM
+### Benchmarking
 
-JS developers, if asked to benchmark the speed (execution time) of a certain operation, would initially go about it something like this: var start = (new Date()).getTime();    // or `Date.now()`// do some operationvar end = (new Date()).getTime();console.log( "Duration:", (end - start) ); Raise your hand if that's roughly what came to your mind. Yep, I thought so. There's a lot wrong with this approach, but don't feel bad; we've all been there.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4187-4187 | Added on Thursday, December 29, 2016 7:47:14 AM
+JS developers, if asked to benchmark the speed (execution time) of a certain operation, would initially go about it something like this:
+```JavaScript
+var start = (new Date()).getTime();    
+// or `Date.now()`
+// do some operation
+var end = (new Date()).getTime();
+console.log( "Duration:", (end - start) );
+```
+
+Raise your hand if that's roughly what came to your mind. Yep, I thought so. There's a lot wrong with this approach, but don't feel bad; we've all been there.
 
 Your "benchmark" is basically useless. And worse, it's dangerous in that it implies false confidence, not just
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4188-4191 | Added on Thursday, December 29, 2016 7:47:39 AM
 
 Repetition "OK," you now say, "Just put a loop around it so the whole test takes longer." If you repeat an operation 100 times, and that whole loop reportedly takes a total of 137ms, then you can just divide by 100 and get an average duration of 1.37ms for each operation, right? Well, not exactly.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4205-4206 | Added on Thursday, December 29, 2016 7:48:17 AM
 
-Benchmark.js
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4207-4207 | Added on Thursday, December 29, 2016 7:48:54 AM
+### Benchmark.js
 
 so I'll hand wave around some terms: standard deviation, variance, margin of error.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4209-4211 | Added on Thursday, December 29, 2016 7:49:17 AM
 
 Luckily, smart folks like John-David Dalton and Mathias Bynens do understand these concepts, and wrote a statistically sound benchmarking tool called Benchmark.js (http://benchmarkjs.com/). So I can end the suspense by simply saying: "just use that tool."
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4215-4226 | Added on Thursday, December 29, 2016 7:49:52 AM
 
-But just for quick illustration purposes, here's how you could use Benchmark.js to run a quick performance test: function foo() {    // operation(s) to test}var bench = new Benchmark(    "foo test",                // test name    foo,                    // function to test (just contents)    {        // ..                // optional extra options (see docs)    });bench.hz;                    // number of operations per secondbench.stats.moe;            // margin of errorbench.stats.variance;        // variance across samples// ..
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4233-4236 | Added on Thursday, December 29, 2016 7:50:44 AM
+But just for quick illustration purposes, here's how you could use Benchmark.js to run a quick performance test: ```JavaScript
+function foo() {    
+  // operation(s) to test}
+  var bench = new Benchmark(    
+    "foo test",                // test name    
+    foo,                    // function to test (just contents)    
+    {        
+      // ..                
+      // optional extra options (see docs)    
+    }
+  );
 
+  bench.hz;                    // number of operations per second
+  bench.stats.moe;            // margin of error
+  bench.stats.variance;        // variance across samples
+  // ..
+  ```
 One largely untapped potential use-case for Benchmark.js is to use it in your Dev or QA environments to run automated performance regression tests against critical path parts of your application's JavaScript. Similar to how you might run unit test suites before deployment, you can also compare the performance against previous benchmarks to monitor if you are improving or degrading application performance.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4403-4403 | Added on Friday, December 30, 2016 7:29:45 AM
 
-Writing Good Tests
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4503-4505 | Added on Friday, December 30, 2016 7:32:29 AM
+### Writing Good Tests
 
 Some commonly cited examples (https://github.com/petkaantonov/bluebird/wiki/Optimization-killers) for v8:
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4552-4555 | Added on Friday, December 30, 2016 7:38:05 AM
 
 Programmers waste enormous amounts of time thinking about, or worrying about, the speed of noncritical parts of their programs, and these attempts at efficiency actually have a strong negative impact when debugging and maintenance are considered. We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil. Yet we should not pass up our opportunities in that critical 3%.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4586-4587 | Added on Friday, December 30, 2016 7:39:16 AM
 
-Tail Call Optimization (TCO)
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4587-4589 | Added on Friday, December 30, 2016 7:39:23 AM
+### Tail Call Optimization (TCO)
 
 ES6 includes a specific requirement that ventures into the world of performance. It's related to a specific form of optimization that can occur with function calls: tail call optimization.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4589-4590 | Added on Friday, December 30, 2016 7:39:40 AM
 
 a "tail call" is a function call that appears at the "tail" of another function, such that after the call finishes, there's nothing left to do (except perhaps return its result value).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4590-4599 | Added on Friday, December 30, 2016 7:40:25 AM
 
-For example, here's a non-recursive setup with tail calls: function foo(x) {    return x;}function bar(y) {    return foo( y + 1 );    // tail call}function baz() {    return 1 + bar( 40 );    // not tail call}baz();
+For example, here's a non-recursive setup with tail calls:
+```JavaScript
+function foo(x) {    
+  return x;
+}
+
+function bar(y) {    
+  return foo( y + 1 );    // tail call
+}
+
+function baz() {    
+  return 1 + bar( 40 );    // not tail call
+}
+
+baz();
+```
 ==========
 You Don't Know JS: Async & Performance (Kyle Simpson)
 - Your Highlight on Location 4604-4606 | Added on Friday, December 30, 2016 7:40:58 AM
