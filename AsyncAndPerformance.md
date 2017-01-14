@@ -2055,219 +2055,208 @@ function baz() {    
 
 baz();
 ```
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4604-4606 | Added on Friday, December 30, 2016 7:40:58 AM
 
 Without getting into too much nitty-gritty detail, calling a new function requires an extra amount of reserved memory to manage the call stack, called a "stack frame." So the preceding snippet would generally require a stack frame for each of baz(), bar(..), and foo(..) all at the same time.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4606-4609 | Added on Friday, December 30, 2016 7:41:18 AM
 
 However, if a TCO-capable engine can realize that the foo(y+1) call is in tail position meaning bar(..) is basically complete, then when calling foo(..), it doesn't need to create a new stack frame, but can instead reuse the existing stack frame from bar(..). That's not only faster, but it also uses less memory.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4610-4611 | Added on Friday, December 30, 2016 7:41:36 AM
 
 With TCO the engine can perform all those calls with a single stack frame!
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4614-4624 | Added on Friday, December 30, 2016 7:42:37 AM
 
-Consider that recursive factorial(..) from before, but rewritten to make it TCO friendly: function factorial(n) {    function fact(n,res) {        if (n < 2) return res;        return fact( n - 1, n * res );    }    return fact( n, 1 );}factorial( 5 );        // 120 This version of factorial(..) is still recursive, but it's also optimizable with TCO, because both inner fact(..) calls are in tail position.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4633-4633 | Added on Friday, December 30, 2016 7:43:39 AM
+Consider that recursive factorial(..) from before, but rewritten to make it TCO friendly:
+```JavaScript
+function factorial(n) {    
+  function fact(n,res) {        
+    if (n < 2) return res;        
+    return fact( n - 1, n * res );    
+  }    
+  return fact( n, 1 );
+}
 
-Review
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4636-4636 | Added on Friday, December 30, 2016 7:43:50 AM
+factorial( 5 );        // 120
+```
+This version of factorial(..) is still recursive, but it's also optimizable with TCO, because both inner fact(..) calls are in tail position.
+
+#### Review
 
 Benchmark.js
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4637-4639 | Added on Friday, December 30, 2016 7:43:56 AM
 
 It's important to get as many test results from as many different environments as possible to eliminate hardware/device bias. jsPerf.com is a fantastic website for crowdsourcing performance benchmark test runs.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4646-4646 | Added on Friday, December 30, 2016 7:44:28 AM
 
-Appendix A: asynquence Library
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4649-4650 | Added on Friday, December 30, 2016 7:44:54 AM
+## Appendix A: asynquence Library
 
 I referenced my own asynchronous library asynquence (http://github.com/getify/asynquence) -- "async" + "sequence" = "asynquence"
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4661-4662 | Added on Friday, December 30, 2016 7:46:12 AM
 
 Sequences, Abstraction Design
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4663-4665 | Added on Friday, December 30, 2016 7:46:45 AM
 
 fundamental abstraction: any series of steps for a task, whether they separately are synchronous or asynchronous, can be collectively thought of as a "sequence". In other words, a sequence is a container that represents a task, and is comprised of individual (potentially async) steps to complete that task.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4665-4665 | Added on Friday, December 30, 2016 7:49:52 AM
 
 Each step in the sequence is controlled under the covers by a Promise
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4665-4666 | Added on Friday, December 30, 2016 7:50:02 AM
 
 every step you add to a sequence implicitly creates a Promise that is wired to the previous end of the sequence.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4668-4668 | Added on Friday, December 30, 2016 7:50:15 AM
 
 meaning that step 2 always comes after step 1 finishes,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4668-4669 | Added on Friday, December 30, 2016 7:50:55 AM
 
 a new sequence can be forked off an existing sequence,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4669-4670 | Added on Friday, December 30, 2016 7:51:05 AM
 
 Sequences can also be combined in various ways, including having one sequence subsumed by another
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4675-4675 | Added on Friday, December 30, 2016 7:52:09 AM
 
 Promises themselves should never be able to be canceled, as this violates a fundamental design imperative: external immutability.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4676-4676 | Added on Friday, December 30, 2016 7:52:15 AM
 
 But sequences have no such immutability design principle,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4676-4677 | Added on Friday, December 30, 2016 7:52:25 AM
 
 mostly because sequences are not passed around as future-value containers that need immutable value semantics.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4677-4677 | Added on Friday, December 30, 2016 7:52:35 AM
 
 the proper level of abstraction to handle abort/cancel behavior.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4681-4682 | Added on Friday, December 30, 2016 7:53:22 AM
 
 Abstractions are meant to reduce boilerplate and tedium,
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4682-4684 | Added on Friday, December 30, 2016 7:53:39 AM
 
 With Promises, your focus is on the individual step, and there's little assumption that you will keep the chain going. With sequences, the opposite approach is taken, assuming the sequence will keep having more steps added indefinitely.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4689-4691 | Added on Friday, December 30, 2016 7:54:33 AM
 
 But if you abstract your thinking to a sequence, and consider a step as a wrapper around a Promise, that step wrapper can hide such details, freeing you to think about the flow control in the most sensible way without being bothered by the details.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4691-4692 | Added on Friday, December 30, 2016 7:54:51 AM
 
 Second, and perhaps more importantly, thinking of async flow control in terms of steps in a sequence allows you to abstract out the details of what types of asynchronicity are involved with each individual step.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4702-4704 | Added on Friday, December 30, 2016 7:56:07 AM
 
 The takeaway is that sequences are a more powerful and sensible abstraction for complex asynchrony than just Promises (Promise chains) or just generators, and asynquence is designed to express that abstraction with just the right level of sugar to make async programming more understandable and more enjoyable.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4713-4713 | Added on Friday, December 30, 2016 9:44:32 PM
 
 Steps
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4718-4734 | Added on Friday, December 30, 2016 9:45:45 PM
-
-ASQ(    // step 1    function(done){        setTimeout( function(){            done( "Hello" );        }, 100 );    },    // step 2    function(done,greeting) {        setTimeout( function(){            done( greeting + " World" );        }, 100 );    })// step 3.then( function(done,msg){    setTimeout( function(){        done( msg.toUpperCase() );    }, 100 );} )// step 4.then( function(done,msg){    console.log( msg );            // HELLO WORLD} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4738-4738 | Added on Friday, December 30, 2016 9:46:07 PM
+```JavaScript
+ASQ(    
+  // step 1    
+  function(done){        
+    setTimeout( function(){            
+      done( "Hello" );        
+    }, 100 );    
+  },    
+  // step 2    
+  function(done,greeting) {        
+    setTimeout( function(){            
+      done( greeting + " World" );        
+    }, 100 );    
+  })
+  // step 3
+  .then( function(done,msg){    
+    setTimeout( function(){        
+      done( msg.toUpperCase() );    
+    }, 100 );
+  } )
+  // step 4
+  .then( function(done,msg){    
+    console.log( msg );            // HELLO WORLD
+  } );
+  ```
 
 with asynquence, all you need to do is call the continuation callback
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4739-4753 | Added on Friday, December 30, 2016 9:46:24 PM
 
-Each step defined by then(..) is assumed to be asynchronous. If you have a step that's synchronous, you can either just call done(..) right away, or you can use the simpler val(..) step helper: // step 1 (sync)ASQ( function(done){    done( "Hello" );    // manually synchronous} )// step 2 (sync).val( function(greeting){    return greeting + " World";} )// step 3 (async).then( function(done,msg){    setTimeout( function(){        done( msg.toUpperCase() );    }, 100 );} )// step 4 (sync).val( function(msg){    console.log( msg );} );
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4814-4814 | Added on Friday, December 30, 2016 9:49:03 PM
+Each step defined by then(..) is assumed to be asynchronous. If you have a step that's synchronous, you can either just call done(..) right away, or you can use the simpler val(..) step helper:
+```JavaScript
+// step 1 (sync)
+ASQ( function(done){    
+  done( "Hello" );    // manually synchronous
+} )
+// step 2 (sync)
+.val( function(greeting){    
+  return greeting + " World";
+} )
+// step 3 (async)
+.then( function(done,msg){    
+  setTimeout( function(){        
+    done( msg.toUpperCase() );    
+  }, 100 );
+} )
+// step 4 (sync)
+.val( function(msg){    
+  console.log( msg );
+} );
+```
 
-Parallel Steps
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4816-4816 | Added on Friday, December 30, 2016 9:49:16 PM
+#### Parallel Steps
 
 A step in a sequence in which multiple substeps are processing concurrently is called a gate(..)
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4817-4817 | Added on Friday, December 30, 2016 9:49:27 PM
 
 and is directly symmetric to native Promise.all([..]).
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4704-4705 | Added on Saturday, December 31, 2016 7:16:31 AM
 
-asynquence API
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4705-4705 | Added on Saturday, December 31, 2016 7:17:13 AM
+#### asynquence API
 
 the way you create a sequence
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4706-4706 | Added on Saturday, December 31, 2016 7:17:18 AM
 
 is with the ASQ(..) function.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4713-4713 | Added on Saturday, December 31, 2016 7:17:56 AM
 
 http://github.com/getify/asynquence
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4755-4756 | Added on Saturday, December 31, 2016 7:18:48 AM
 
 Think of val(..) as representing a synchronous "value-only" step, which is useful for synchronous value operations, logging, and the like.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4756-4756 | Added on Saturday, December 31, 2016 7:18:56 AM
 
-Errors
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4757-4759 | Added on Saturday, December 31, 2016 7:19:17 AM
+#### Errors
 
 With Promises, each individual Promise (step) in a chain can have its own independent error, and each subsequent step has the ability to handle the error or not. The main reason for this semantic comes (again) from the focus on individual Promises rather than on the chain (sequence) as a whole.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4772-4787 | Added on Saturday, December 31, 2016 7:21:20 AM
 
-Just like with Promises, all JS exceptions become sequence errors, or you can programmatically signal a sequence error: var sq = ASQ( function(done){    setTimeout( function(){        // signal an error for the sequence        done.fail( "Oops" );    }, 100 );} ).then( function(done){    // will never get here} ).or( function(err){    console.log( err );            // Oops} ).then( function(done){    // won't get here either} );// latersq.or( function(err){    console.log( err );            // Oops} ); Another
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4772-4793 | Added on Saturday, December 31, 2016 7:22:19 AM
+Just like with Promises, all JS exceptions become sequence errors, or you can programmatically signal a sequence error:
+```JavaScript
+var sq = ASQ( function(done){    
+  setTimeout( function(){        
+    // signal an error for the sequence        
+    done.fail( "Oops" );    
+  }, 100 );
+} ).then( function(done){    
+  // will never get here
+} ).or( function(err){    
+  console.log( err );            // Oops
+} ).then( function(done){    
+  // won't get here either
+} );
+// later
+sq.or( function(err){    
+  console.log( err );            
+  // Oops
+} );
+```
+Another really important difference with error handling in asynquence compared to native Promises is the default behavior of "unhandled exceptions". As we discussed at length in Chapter 3, a rejected Promise without a registered rejection handler will just silently hold (aka swallow) the error; you have to remember to always end a chain with a final catch(..). In asynquence, the assumption is reversed. If an error occurs on a sequence, and it at that moment has no error handlers registered, the error is reported to the console. In other words, unhandled rejections are by default always reported so as not to be swallowed and missed.
 
-Just like with Promises, all JS exceptions become sequence errors, or you can programmatically signal a sequence error: var sq = ASQ( function(done){    setTimeout( function(){        // signal an error for the sequence        done.fail( "Oops" );    }, 100 );} ).then( function(done){    // will never get here} ).or( function(err){    console.log( err );            // Oops} ).then( function(done){    // won't get here either} );// latersq.or( function(err){    console.log( err );            // Oops} ); Another really important difference with error handling in asynquence compared to native Promises is the default behavior of "unhandled exceptions". As we discussed at length in Chapter 3, a rejected Promise without a registered rejection handler will just silently hold (aka swallow) the error; you have to remember to always end a chain with a final catch(..). In asynquence, the assumption is reversed. If an error occurs on a sequence, and it at that moment has no error handlers registered, the error is reported to the console. In other words, unhandled rejections are by default always reported so as not to be swallowed and missed.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4819-4855 | Added on Saturday, December 31, 2016 7:23:39 AM
+Consider:
+```JavaScript
+ASQ( function(done){    
+  setTimeout( done, 100 );
+} ).gate(    
+  function(done){        
+    setTimeout( function(){            
+      done( "Hello" );        
+    }, 100 );    
+  },    
+  function(done){        
+    setTimeout( function(){            
+      done( "World", "!" );        
+    }, 100 );    
+  }).val( function(msg1,msg2){    
+    console.log( msg1 );    // Hello    
+    console.log( msg2 );    // [ "World", "!" ]
+  } );
+  ```
 
-Consider: ASQ( function(done){    setTimeout( done, 100 );} ).gate(    function(done){        setTimeout( function(){            done( "Hello" );        }, 100 );    },    function(done){        setTimeout( function(){            done( "World", "!" );        }, 100 );    }).val( function(msg1,msg2){    console.log( msg1 );    // Hello    console.log( msg2 );    // [ "World", "!" ]} ); For illustration, let's compare that example to native Promises: new Promise( function(resolve,reject){    setTimeout( resolve, 100 );} ).then( function(){    return Promise.all( [        new Promise( function(resolve,reject){            setTimeout( function(){                resolve( "Hello" );            }, 100 );        } ),        new Promise( function(resolve,reject){            setTimeout( function(){                // note: we need a [ ] array here                resolve( [ "World", "!" ] );            }, 100 );        } )    ] );} ).then( function(msgs){    console.log( msgs[0] );    // Hello    console.log( msgs[1] );    // [ "World", "!" ]} ); Yuck. Promises require a lot more boilerplate overhead to express the same asynchronous flow control.
-==========
-You Don't Know JS: Async & Performance (Kyle Simpson)
-- Your Highlight on Location 4855-4856 | Added on Saturday, December 31, 2016 7:23:51 AM
+  For illustration, let's compare that example to native Promises:
+
+  ```JavaScript
+  new Promise( function(resolve,reject){    
+    setTimeout( resolve, 100 );
+  } ).then( function(){    
+    return Promise.all( [        
+      new Promise( function(resolve,reject){            
+        setTimeout( function(){                
+          resolve( "Hello" );            
+        }, 100 );        
+      } ),        
+      new Promise( function(resolve,reject){            
+        setTimeout( function(){                
+          // note: we need a [ ] array here                
+          resolve( [ "World", "!" ] );            
+        }, 100 );        
+      } )    
+    ] );
+  } ).then( function(msgs){    
+    console.log( msgs[0] );    // Hello    
+    console.log( msgs[1] );    // [ "World", "!" ]
+  } );
+
+  ```
+
+Yuck. Promises require a lot more boilerplate overhead to express the same asynchronous flow control.
 
 That's a great illustration of why the asynquence API and abstraction make dealing with Promise steps a lot nicer.
-==========
